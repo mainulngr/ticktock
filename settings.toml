@@ -48,22 +48,22 @@ output_dir = "dr_bananapu"
 [[channel]]
 id = "botanyphddiariesgr"
 username = "botanyphddiariesgr"
-name = ""
-sec_uid = ""
+name = "Botany PhD Diaries"
+sec_uid = "MS4wLjABAAAAnz3TvD7eF65TUE_rNXHyba0UBE3ZwzjvohS2EmpPU2fFBueXE5_WtRyQ3sEc60iX"
 output_dir = "botanyphddiariesgr"
 
 [[channel]]
 id = "nature_taless"
 username = "nature_taless"
-name = ""
-sec_uid = ""
+name = "Nature_Taless"
+sec_uid = "MS4wLjABAAAAj3pCNrKOx0b3fJILWTAlEkD_eK9ZagxhYWxIIFOX7LDiQJeiPlh1JrDWcxIzPFWC"
 output_dir = "nature_taless"
 
 [[channel]]
 id = "dr_healthcare1"
 username = "dr..healthcare1"
-name = ""
-sec_uid = ""
+name = "Dr. Healthcare"
+sec_uid = "MS4wLjABAAAAAsi63_gN03S_rQxjr3hICZ5EEAwa_fnhBSWf1YHM47LljKHtQOko4EM_Htm2Qdrd"
 output_dir = "dr_healthcare1"
 
 [[channel]]

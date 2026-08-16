@@ -1,0 +1,12 @@
+intent: "Resolve sec_uids for the three corrected channels and verify they download"
+actions_taken:
+  - Re-ran ticktock resolve with the updated usernames
+  - All 13 channels now have sec_uid and display name in settings.toml
+  - Verified one download each for the three newly resolved channels
+  - Updated README and workspace.md to clarify the app is downloader-only (no playback)
+files_modified:
+  - settings.toml
+  - README.md
+  - .windsurf/rules/workspace.md
+  - _journal/reports/260817_001_resolve_remaining_channels.yaml
+notes: "All 13 profiles resolve and download. Filenames are YYMMDD_HHMMSS_<id>.mp4. App does not play files."
