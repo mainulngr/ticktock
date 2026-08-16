@@ -28,25 +28,19 @@ class Resolver:
         url = channel.url()
         logger.info("resolving channel: %s", url)
         try:
-            info = self.ytdlp.channel_info(url, channel.id)
+            videos = self.ytdlp.list_videos(url, channel.id)
+            if not videos:
+                logger.warning("no videos for channel: %s", channel.id)
+                return channel
+            info = videos[0]
         except YtDlpError:
             logger.warning("could not resolve channel: %s", channel.id)
             return channel
 
-        # TikTok fields vary; try the common ones.
-        sec_uid = self._first_truthy(
-            info.get("channel_id"),
-            info.get("uploader_id"),
-            info.get("uploader_url"),
-        )
-        name = self._first_truthy(
-            info.get("channel"),
-            info.get("uploader"),
-        )
-        username = self._first_truthy(
-            info.get("uploader"),
-            info.get("channel"),
-        )
+        # Derive stable metadata from the most recent video.
+        sec_uid = self._first_truthy(info.sec_uid, channel.sec_uid)
+        username = self._first_truthy(info.uploader, channel.username)
+        name = self._first_truthy(info.uploader_display, channel.name)
 
         if sec_uid and "/" in sec_uid:
             sec_uid = sec_uid.rsplit("/", 1)[-1]
@@ -56,11 +50,11 @@ class Resolver:
 
         if username:
             channel.username = username
-        if name and name != channel.username:
+        if name and name != username:
             channel.name = name
-        else:
-            channel.name = name or channel.name
-        if sec_uid and not channel.sec_uid:
+        elif name:
+            channel.name = name
+        if sec_uid:
             channel.sec_uid = sec_uid
 
         return channel

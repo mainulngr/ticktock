@@ -6,77 +6,90 @@
 [[channel]]
 id = "dhdud3516"
 username = "dhdud3516"
-name = ""
-sec_uid = ""
+name = "dhdud"
+sec_uid = "MS4wLjABAAAA0JQ2vbRK4HhjVddO-SOE3g3WxTbgezoNVhBs6kqJDSbzPIJ35eEYiAi-uIW9XQLs"
+output_dir = "dhdud3516"
 
 [[channel]]
 id = "elki_sumanto"
 username = "elki.sumanto"
-name = ""
-sec_uid = ""
+name = "Elki Sumanto"
+sec_uid = "MS4wLjABAAAAPHslIYOkqGkgJhZW7a_Ot903BeW01_SridBJdyTRyfigBJcWnzytju28YXqYL4-s"
+output_dir = "elki_sumanto"
 
 [[channel]]
 id = "englishfuns"
 username = "englishfuns"
-name = ""
-sec_uid = ""
+name = "Yutian"
+sec_uid = "MS4wLjABAAAAbEKfl2wBCiXVJnILMOYeYcFn2f7wf2CMxiGSwA2YYoBHR4cseyoApNsMDz5Wjph5"
+output_dir = "englishfuns"
 
 [[channel]]
 id = "dr_bota1"
 username = "dr_bota1"
-name = ""
-sec_uid = ""
+name = "Dr. Bota"
+sec_uid = "MS4wLjABAAAACsc5R2dBDLwqNZWkrozJamNM5QrkmInubob4sOAutGTtpAn81Lw0HttSKLeBgGCe"
+output_dir = "dr_bota1"
 
 [[channel]]
 id = "tinyartmagic_muhammadtariq3186"
-username = "TinyArtMagic/muhammadtariq3186"
-name = ""
-sec_uid = ""
+username = "muhammadtariq3186"
+name = "TinyArtMagic"
+sec_uid = "MS4wLjABAAAA6hUMIlecr23sUvGgvonWKzoHBB-e66YZCQnMzNkTO35Ah9LKE77UAKbFxzpVsLy5"
+output_dir = "tinyartmagic_muhammadtariq3186"
 
 [[channel]]
 id = "dr_bananapu"
 username = "dr.bananapu"
-name = ""
-sec_uid = ""
+name = "dr.bananapu"
+sec_uid = "MS4wLjABAAAA_BKpU7ilvUm06LEd3jkoVzM_iXCpAK6Cd03T2oLKpV5CdbFEC941ZAh1Y0WcCBBo"
+output_dir = "dr_bananapu"
 
 [[channel]]
 id = "botanyphpdiariesgr"
 username = "botanyphpdiariesgr"
 name = ""
 sec_uid = ""
+output_dir = "botanyphpdiariesgr"
 
 [[channel]]
 id = "natural_taless"
 username = "natural_taless"
 name = ""
 sec_uid = ""
+output_dir = "natural_taless"
 
 [[channel]]
 id = "dr_healthcare1"
 username = "dr.healthcare1"
 name = ""
 sec_uid = ""
+output_dir = "dr_healthcare1"
 
 [[channel]]
 id = "fridge_111"
 username = "fridge_111"
-name = ""
-sec_uid = ""
+name = "fridge_111"
+sec_uid = "MS4wLjABAAAAm2LN1lFRXi3kJdFo3TsL6BplYydBA26TcjzM6x2sXpeQqHLpBqVHNVf5qVcoqvUT"
+output_dir = "fridge_111"
 
 [[channel]]
 id = "anmopaa"
 username = "anmopaa"
-name = ""
-sec_uid = ""
+name = "Anmopaa"
+sec_uid = "MS4wLjABAAAAQnRVADtQa4olOJgXhVd2EuGZkFcceq5_5Bdvz-c5fsSRucTD7H2TTHzmpaJ-DXxV"
+output_dir = "anmopaa"
 
 [[channel]]
 id = "learn_english_with_jamie"
 username = "learn.english.with.jamie"
-name = ""
-sec_uid = ""
+name = "Learn English With Jamie"
+sec_uid = "MS4wLjABAAAAdXIY3OxAoDxN2BkM-q-NuCl8V0DNRjQ9Ej6NQr6uI4UTv0hhJrZxywN4_ial8__9"
+output_dir = "learn_english_with_jamie"
 
 [[channel]]
 id = "tjohnhutcheson"
 username = "tjohnhutcheson"
-name = ""
-sec_uid = ""
+name = "Hillbilly Arts&Crafts"
+sec_uid = "MS4wLjABAAAAHpDX9qJNQzB0gpG--E3SnCTXKtJQJFQAH3wZT4I49rC2qzEX8U2MUVfZ7vcSrnzn"
+output_dir = "tjohnhutcheson"

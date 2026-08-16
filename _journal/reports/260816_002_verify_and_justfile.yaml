@@ -1,0 +1,33 @@
+intent: "Verify TikTok downloads, resolve stable sec_uids and display names, and add a justfile"
+actions_taken:
+  - Added --max-downloads / -n CLI option to limit per-run downloads
+  - Switched resolver from fragile single-video info to flat-playlist first entry for channel metadata
+  - Added sec_uid and uploader_display to Video model; Channel.url() now prefers sec_uid over username
+  - Fixed output_dir double-nesting bug (downloads/downloads) in config and settings.toml
+  - Ran resolve and successfully populated 10 of 13 channels with sec_uid + display name
+  - Ran verify (max-downloads 1) and confirmed one video per working channel in downloads/<id>/
+  - Added justfile with setup, resolve, run, watch, verify, summary, and clean recipes
+  - Updated workspace.md and README.md with just-based commands
+  - Created .env with defaults
+files_modified:
+  - ticktock/cli.py
+  - ticktock/downloader.py
+  - ticktock/models.py
+  - ticktock/resolver.py
+  - ticktock/scheduler.py
+  - ticktock/state.py
+  - ticktock/yt_dlp.py
+  - ticktock/config.py
+  - settings.toml
+  - .env
+  - .windsurf/rules/workspace.md
+  - README.md
+  - justfile
+  - _journal/tasks.yaml
+  - _journal/reports/260816_002_verify_and_justfile.yaml
+notes: |
+  10 of 13 channels resolved and downloaded successfully. Remaining 3
+  (botanyphpdiariesgr, natural_taless, dr_healthcare1) failed with
+  "Unable to extract secondary user ID" / "no videos posted". These need
+  either a TikTok cookies file, a known sec_uid from a video link, or the
+  accounts may be private/inactive.

@@ -42,7 +42,12 @@ def _resolve(args: argparse.Namespace, config: AppConfig) -> int:
 def _run(args: argparse.Namespace, config: AppConfig) -> int:
     scheduler = _build_scheduler(config)
     channels = load_channels(args.config)
-    scheduler.run(channels, force=args.force, channel_ids=args.channel or None)
+    scheduler.run(
+        channels,
+        force=args.force,
+        channel_ids=args.channel or None,
+        max_downloads=args.max_downloads,
+    )
     return 0
 
 
@@ -51,7 +56,12 @@ def _watch(args: argparse.Namespace, config: AppConfig) -> int:
     channels = load_channels(args.config)
     while True:
         try:
-            scheduler.run(channels, force=args.force, channel_ids=args.channel or None)
+            scheduler.run(
+                channels,
+                force=args.force,
+                channel_ids=args.channel or None,
+                max_downloads=args.max_downloads,
+            )
         except Exception:
             logging.exception("scheduler run failed")
         logging.info("sleeping %d seconds", args.interval)
@@ -67,11 +77,17 @@ def main(argv: Sequence[str] | None = None) -> int:
     sub = parser.add_subparsers(dest="command", required=True)
 
     run_p = sub.add_parser("run", help="run one download cycle")
+    run_p.add_argument(
+        "-n", "--max-downloads", type=int, default=None, help="download at most N videos per run"
+    )
     run_p.set_defaults(func=_run)
 
     watch_p = sub.add_parser("watch", help="run continuously")
     watch_p.add_argument(
         "-i", "--interval", type=int, default=21600, help="seconds between runs (default 21600)"
+    )
+    watch_p.add_argument(
+        "-n", "--max-downloads", type=int, default=None, help="download at most N videos per run"
     )
     watch_p.set_defaults(func=_watch)
 

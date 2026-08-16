@@ -48,7 +48,7 @@ def _parse_channels(raw: list[dict]) -> List[Channel]:
         username = item.get("username", "").strip()
         output_dir = item.get("output_dir", "").strip()
         if not output_dir:
-            output_dir = f"downloads/{cid}"
+            output_dir = cid
         channels.append(
             Channel(
                 id=cid,

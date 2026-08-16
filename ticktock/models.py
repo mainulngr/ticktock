@@ -18,10 +18,13 @@ class Channel:
     last_checked_at: Optional[datetime] = None
 
     def url(self) -> str:
+        """Return a profile URL; prefer the stable sec_uid over username."""
+        if self.sec_uid:
+            return f"https://www.tiktok.com/@{self.sec_uid}"
         return f"https://www.tiktok.com/@{self.username}"
 
     def output_path(self, base_dir: Path) -> Path:
-        return base_dir / (self.output_dir or f"downloads/{self.id}")
+        return base_dir / (self.output_dir or self.id)
 
 
 @dataclass
@@ -38,6 +41,8 @@ class Video:
     duration: Optional[int] = None
     view_count: Optional[int] = None
     file_path: Optional[Path] = None
+    sec_uid: str = ""
+    uploader_display: str = ""
 
     @property
     def upload_datetime(self) -> Optional[datetime]:

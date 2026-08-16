@@ -37,7 +37,7 @@ class Scheduler:
         elapsed = now - channel_state.last_checked_at
         return elapsed >= self.config.min_interval
 
-    def run_channel(self, channel: Channel, now: datetime | None = None) -> None:
+    def run_channel(self, channel: Channel, now: datetime | None = None, max_downloads: int | None = None) -> None:
         now = now or datetime.utcnow()
         logger.info("checking channel: %s", channel.id)
 
@@ -47,7 +47,7 @@ class Scheduler:
         except Exception:
             logger.exception("resolver failed for %s", channel.id)
 
-        results = self.downloader.download(channel)
+        results = self.downloader.download(channel, max_downloads=max_downloads)
         for result in results:
             if result.error:
                 logger.warning("error downloading %s: %s", result.video.video_id, result.error)
@@ -60,12 +60,13 @@ class Scheduler:
         channels: List[Channel],
         force: bool = False,
         channel_ids: List[str] | None = None,
+        max_downloads: int | None = None,
     ) -> None:
         now = datetime.utcnow()
         for channel in channels:
             if channel_ids and channel.id not in channel_ids:
                 continue
             if force or self.is_due(channel, now):
-                self.run_channel(channel, now)
+                self.run_channel(channel, now, max_downloads=max_downloads)
             else:
                 logger.info("skipping %s (checked recently)", channel.id)

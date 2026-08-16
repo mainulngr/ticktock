@@ -11,24 +11,31 @@ TikTok profile download scheduler with idempotent, timestamp-sorted videos.
 - `yt-dlp` for extraction and downloading
 - TOML for channel configuration
 - SQLite for persistent download state
+- `just` for task recipes
 - `.env` for secrets/paths
 
 ## Directory structure
 - `ticktock/`: application source (SRP modules)
 - `settings.toml`: channel list with stable ids and usernames
+- `justfile`: common commands
 - `.env` / `.env.example`: environment and secrets
 - `_journal/`: task inbox and post-execution reports
 - `downloads/`: default video output (gitignored)
 - `data/`: state and cache (gitignored)
 
 ## Key commands
-- `python -m ticktock --run` — one-shot scheduled download
-- `python -m ticktock --watch --interval 21600` — run every 6 hours
-- `python -m ticktock --resolve` — resolve channel ids/names and update settings.toml
-- `pip install -r requirements.txt` — install dependencies
+- `just setup` — create venv and install dependencies
+- `just resolve` — resolve channel ids/names and update settings.toml
+- `just run` — one-shot scheduled download
+- `just run -- --max-downloads 5` — run with extra CLI args
+- `just watch` — run continuously every 6 hours
+- `just verify` — test one download per channel
+- `just summary` — list downloaded files
+- `just clean` — remove downloads and state
 
 ## Architectural notes
 - Each channel has a stable `id` (derived from first-known username) plus the mutable `username` and resolved `sec_uid`/`name`.
-- Downloads are idempotent by video id; state is stored in `data/state.db`.
+- `Channel.url()` prefers the stable `sec_uid` over the username, so username changes do not break profile lookups once resolved.
+- Downloads are idempotent by video id; state is stored in `data/state.db` and a `data/yt-dlp-archive.txt`.
 - Output filenames use `YYYYMMDD_HHMMSS_<video_id>` for old-to-new sorting in any player.
 - Scheduler respects `min_interval` and per-channel `last_checked_at` to avoid hammering TikTok.

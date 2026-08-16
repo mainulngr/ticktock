@@ -88,6 +88,8 @@ class YtDlp:
             uploader=uploader,
             duration=entry.get("duration"),
             view_count=entry.get("view_count"),
+            sec_uid=entry.get("channel_id") or entry.get("uploader_id") or "",
+            uploader_display=entry.get("channel") or uploader,
         )
 
     def list_videos(
@@ -117,7 +119,13 @@ class YtDlp:
             raise YtDlpError(f"no channel info returned for {url}")
         return entries[0]
 
-    def download(self, urls: Iterable[str], output_dir: Path, archive_path: Path) -> None:
+    def download(
+        self,
+        urls: Iterable[str],
+        output_dir: Path,
+        archive_path: Path,
+        max_downloads: int | None = None,
+    ) -> None:
         ensure_dir(output_dir)
         cmd = self._base_args() + [
             "--download-archive",
@@ -126,6 +134,8 @@ class YtDlp:
             self.OUTPUT_TEMPLATE,
             "--no-playlist",
         ]
+        if max_downloads:
+            cmd.extend(["--max-downloads", str(max_downloads)])
         cmd.extend(urls)
         logger.debug("downloading: %s", " ".join(cmd))
         try:
@@ -140,7 +150,7 @@ class YtDlp:
         except FileNotFoundError as e:
             raise YtDlpError(f"yt-dlp not found: {self.config.yt_dlp_path}") from e
 
-        if proc.returncode != 0:
+        if proc.returncode not in (0, 101):
             logger.error("yt-dlp download stderr: %s", proc.stderr.strip())
             raise YtDlpError(f"yt-dlp download failed (code {proc.returncode}): {proc.stderr.strip()[:200]}")
 
@@ -150,6 +160,7 @@ class YtDlp:
         output_dir: Path,
         archive_path: Path,
         dateafter: Optional[str] = None,
+        max_downloads: int | None = None,
     ) -> None:
         """Download a whole channel, letting yt-dlp's archive skip known ids."""
         ensure_dir(output_dir)
@@ -163,6 +174,8 @@ class YtDlp:
         ]
         if dateafter:
             cmd.extend(["--dateafter", dateafter])
+        if max_downloads:
+            cmd.extend(["--max-downloads", str(max_downloads)])
         cmd.append(url)
         logger.info("downloading channel: %s (dateafter=%s)", url, dateafter or "all")
         try:
@@ -177,7 +190,7 @@ class YtDlp:
         except FileNotFoundError as e:
             raise YtDlpError(f"yt-dlp not found: {self.config.yt_dlp_path}") from e
 
-        # 101 indicates the run was intentionally cancelled (e.g. break-on-existing).
+        # 101 indicates the run was intentionally cancelled (e.g. break-on-existing or max-downloads).
         if proc.returncode not in (0, 101):
             logger.error("yt-dlp channel download stderr: %s", proc.stderr.strip())
             raise YtDlpError(

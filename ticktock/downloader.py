@@ -41,7 +41,7 @@ class Downloader:
         return dt.strftime("%Y%m%d")
 
     def list(self, channel: Channel) -> List[Video]:
-        latest = self.state.latest_upload_timestamp(channel.id)
+        latest = self.state.get_latest_upload_timestamp(channel.id)
         dateafter = self._dateafter(latest)
         logger.info("listing %s (dateafter=%s)", channel.username, dateafter or "all")
         try:
@@ -76,7 +76,7 @@ class Downloader:
             )
             self.state.update_latest_upload_timestamp(channel.id, ts)
 
-    def download(self, channel: Channel) -> List[DownloadResult]:
+    def download(self, channel: Channel, max_downloads: int | None = None) -> List[DownloadResult]:
         """Download new videos for a single channel."""
         output_dir = self._output_dir(channel)
         archive_path = self._archive_path(channel)
@@ -105,10 +105,10 @@ class Downloader:
         try:
             urls = [v.url for v in new_videos if v.url]
             if urls:
-                self.ytdlp.download(urls, output_dir, archive_path)
+                self.ytdlp.download(urls, output_dir, archive_path, max_downloads=max_downloads)
             else:
                 dateafter = self._dateafter(self.state.latest_upload_timestamp(channel.id))
-                self.ytdlp.download_channel(channel.url(), output_dir, archive_path, dateafter)
+                self.ytdlp.download_channel(channel.url(), output_dir, archive_path, dateafter, max_downloads=max_downloads)
         except YtDlpError as e:
             logger.error("download failed for %s: %s", channel.id, e)
             return [DownloadResult(v, error=str(e)) for v in new_videos]

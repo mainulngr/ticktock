@@ -1,8 +1,11 @@
 - id: 260816-001
   title: "Create TikTok download scheduler"
   status: completed
+- id: 260816-002
+  title: "Verify channel downloads, resolve sec_uids, and add justfile"
+  status: completed
   created: 16-08-2026
   notes: |
-    Build idempotent profile video downloader with state management,
-    timestamped filenames, organized channel folders, and stable channel ids.
-    Migrate legacy settings.toml into structured TOML.
+    Verified one download per channel, fixed output path, switched resolver to
+    flat-playlist, populated settings.toml with sec_uids and display names,
+    and added a justfile.
