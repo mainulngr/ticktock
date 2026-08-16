@@ -46,22 +46,22 @@ sec_uid = "MS4wLjABAAAA_BKpU7ilvUm06LEd3jkoVzM_iXCpAK6Cd03T2oLKpV5CdbFEC941ZAh1Y
 output_dir = "dr_bananapu"
 
 [[channel]]
-id = "botanyphpdiariesgr"
-username = "botanyphpdiariesgr"
+id = "botanyphddiariesgr"
+username = "botanyphddiariesgr"
 name = ""
 sec_uid = ""
-output_dir = "botanyphpdiariesgr"
+output_dir = "botanyphddiariesgr"
 
 [[channel]]
-id = "natural_taless"
-username = "natural_taless"
+id = "nature_taless"
+username = "nature_taless"
 name = ""
 sec_uid = ""
-output_dir = "natural_taless"
+output_dir = "nature_taless"
 
 [[channel]]
 id = "dr_healthcare1"
-username = "dr.healthcare1"
+username = "dr..healthcare1"
 name = ""
 sec_uid = ""
 output_dir = "dr_healthcare1"

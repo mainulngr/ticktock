@@ -54,7 +54,7 @@ class Downloader:
         """Scan the output folder and update state with found videos."""
         output_dir = self._output_dir(channel)
         pattern = re.compile(
-            r"^(?P<date>\d{8})_(?P<time>\d{6})_(?P<id>[^_]+)_(?:.*)\.(?P<ext>\w+)$"
+            r"^(?P<date>\d{6,8})_(?P<time>\d{6})_(?P<id>[^_\.]+)(?:_.*)?\.(?P<ext>\w+)$"
         )
         if not output_dir.exists():
             return
@@ -65,9 +65,11 @@ class Downloader:
             if not match:
                 continue
             video_id = match.group("id")
-            ts_str = match.group("date") + match.group("time")
+            date_str = match.group("date")
+            ts_str = date_str + match.group("time")
+            date_fmt = "%y%m%d%H%M%S" if len(date_str) == 6 else "%Y%m%d%H%M%S"
             try:
-                ts = int(datetime.strptime(ts_str, "%Y%m%d%H%M%S").timestamp())
+                ts = int(datetime.strptime(ts_str, date_fmt).timestamp())
             except ValueError:
                 ts = 0
             self.state.record_video(

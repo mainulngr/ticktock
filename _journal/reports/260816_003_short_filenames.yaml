@@ -1,0 +1,13 @@
+intent: "Shorten downloaded filenames to bare minimum while keeping old-to-new sortability"
+actions_taken:
+  - Changed yt-dlp output template from YYYYMMDD_HHMMSS_id_title to YYMMDD_HHMMSS_id
+  - Updated downloader's filename-scan regex to parse 6- or 8-digit dates and optional title
+  - Cleaned downloads/data and re-ran just verify to confirm new naming
+  - Updated workspace.md and README.md
+files_modified:
+  - ticktock/yt_dlp.py
+  - ticktock/downloader.py
+  - .windsurf/rules/workspace.md
+  - README.md
+  - _journal/reports/260816_003_short_filenames.yaml
+notes: "Filenames now look like 260816_172244_7674681076639436045.mp4."

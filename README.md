@@ -86,7 +86,7 @@ just clean    # remove downloads and state
 ## How it works
 
 - Downloads are stored under `downloads/<channel_id>/`.
-- Filenames start with the upload date and time: `YYYYMMDD_HHMMSS_<video_id>_<title>.mp4`.
+- Filenames start with the upload date and time: `YYMMDD_HHMMSS_<video_id>.mp4`.
 - State is kept in `data/state.db` and `data/yt-dlp-archive.txt`; reruns skip already-downloaded videos.
 - Scheduler respects `MIN_INTERVAL_SECONDS` (default 1 hour) per channel.
 - Use `TIKTOK_COOKIES_FILE` in `.env` if TikTok blocks unauthenticated requests.

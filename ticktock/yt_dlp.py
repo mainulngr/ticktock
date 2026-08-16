@@ -21,10 +21,9 @@ class YtDlp:
     """Execute yt-dlp and translate its output into domain objects."""
 
     OUTPUT_TEMPLATE = (
-        "%(upload_date>%Y%m%d|19000101)s_"
+        "%(upload_date>%y%m%d|000101)s_"
         "%(timestamp>%H%M%S|000000)s_"
-        "%(id)s_"
-        "%(title|Untitled).50B"
+        "%(id)s"
         ".%(ext)s"
     )
 
