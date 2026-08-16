@@ -1,0 +1,12 @@
+[project]
+name = "ticktock"
+version = "0.1.0"
+description = "TikTok profile download scheduler"
+requires-python = ">=3.11"
+dependencies = [
+    "yt-dlp==2026.7.4",
+    "python-dotenv==1.2.2",
+]
+
+[project.scripts]
+ticktock = "ticktock.cli:main"

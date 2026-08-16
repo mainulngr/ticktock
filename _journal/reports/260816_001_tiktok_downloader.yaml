@@ -1,0 +1,32 @@
+intent: "Create idempotent TikTok download scheduler with stable channel ids, timestamped filenames, and state management"
+actions_taken:
+  - Created .windsurf/rules/workspace.md and _journal/ scaffold
+  - Migrated settings.toml into structured TOML with stable id, username, name, and sec_uid
+  - Added Python package ticktock/ with SRP modules: config, models, state, yt_dlp, resolver, downloader, scheduler, cli
+  - Implemented SQLite state tracking for channels and videos
+  - Implemented yt-dlp wrapper using timestamped output template and download archive for idempotency
+  - Added CLI with run, watch, and resolve subcommands
+  - Added .gitignore, .env.example, .env, requirements.txt, pyproject.toml, and README.md
+files_modified:
+  - .windsurf/rules/workspace.md
+  - _journal/tasks.yaml
+  - _journal/reports/260816_001_tiktok_downloader.yaml
+  - settings.toml
+  - .env.example
+  - .env
+  - .gitignore
+  - requirements.txt
+  - pyproject.toml
+  - README.md
+  - ticktock/__init__.py
+  - ticktock/__main__.py
+  - ticktock/cli.py
+  - ticktock/config.py
+  - ticktock/downloader.py
+  - ticktock/models.py
+  - ticktock/resolver.py
+  - ticktock/scheduler.py
+  - ticktock/state.py
+  - ticktock/utils.py
+  - ticktock/yt_dlp.py
+notes: "Real TikTok downloads require a working yt-dlp setup and may need cookies if TikTok blocks requests. Tested CLI and local config/state only; no live downloads performed."

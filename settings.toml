@@ -1,0 +1,82 @@
+# TikTok channel list
+# Each channel has a stable `id` (never changes) plus the current `username`,
+# resolved `sec_uid`, and display `name`. The resolver updates username/name/sec_uid
+# in place while leaving `id` untouched.
+
+[[channel]]
+id = "dhdud3516"
+username = "dhdud3516"
+name = ""
+sec_uid = ""
+
+[[channel]]
+id = "elki_sumanto"
+username = "elki.sumanto"
+name = ""
+sec_uid = ""
+
+[[channel]]
+id = "englishfuns"
+username = "englishfuns"
+name = ""
+sec_uid = ""
+
+[[channel]]
+id = "dr_bota1"
+username = "dr_bota1"
+name = ""
+sec_uid = ""
+
+[[channel]]
+id = "tinyartmagic_muhammadtariq3186"
+username = "TinyArtMagic/muhammadtariq3186"
+name = ""
+sec_uid = ""
+
+[[channel]]
+id = "dr_bananapu"
+username = "dr.bananapu"
+name = ""
+sec_uid = ""
+
+[[channel]]
+id = "botanyphpdiariesgr"
+username = "botanyphpdiariesgr"
+name = ""
+sec_uid = ""
+
+[[channel]]
+id = "natural_taless"
+username = "natural_taless"
+name = ""
+sec_uid = ""
+
+[[channel]]
+id = "dr_healthcare1"
+username = "dr.healthcare1"
+name = ""
+sec_uid = ""
+
+[[channel]]
+id = "fridge_111"
+username = "fridge_111"
+name = ""
+sec_uid = ""
+
+[[channel]]
+id = "anmopaa"
+username = "anmopaa"
+name = ""
+sec_uid = ""
+
+[[channel]]
+id = "learn_english_with_jamie"
+username = "learn.english.with.jamie"
+name = ""
+sec_uid = ""
+
+[[channel]]
+id = "tjohnhutcheson"
+username = "tjohnhutcheson"
+name = ""
+sec_uid = ""

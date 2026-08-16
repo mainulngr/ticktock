@@ -1,0 +1,8 @@
+- id: 260816-001
+  title: "Create TikTok download scheduler"
+  status: completed
+  created: 16-08-2026
+  notes: |
+    Build idempotent profile video downloader with state management,
+    timestamped filenames, organized channel folders, and stable channel ids.
+    Migrate legacy settings.toml into structured TOML.
