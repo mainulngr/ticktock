@@ -93,3 +93,10 @@ username = "tjohnhutcheson"
 name = "Hillbilly Arts&Crafts"
 sec_uid = "MS4wLjABAAAAHpDX9qJNQzB0gpG--E3SnCTXKtJQJFQAH3wZT4I49rC2qzEX8U2MUVfZ7vcSrnzn"
 output_dir = "tjohnhutcheson"
+
+[[channel]]
+id = "phanith_small6"
+username = "phanith.small6"
+name = "Phanith Small"
+sec_uid = "MS4wLjABAAAAjBK-ZQbZwB3RLAHKNgbqn9HeDWg6HHvSJ8u1VZ1moHFCUgOFqgJRJI44tKVdOPsR"
+output_dir = "phanith_small6"
