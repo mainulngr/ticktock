@@ -27,7 +27,9 @@ TikTok profile download scheduler. Downloads videos on a schedule with chronolog
 - `just setup` — create venv and install dependencies
 - `just resolve` — resolve channel ids/names and update settings.toml
 - `just run` — one-shot scheduled download
-- `just run -- --max-downloads 5` — run with extra CLI args
+- `just run --force` — start immediately, bypass per-channel interval
+- `just run --max-downloads 5` — limit videos per run
+- `just run --channel dhdud3516` — run one channel only
 - `just watch` — run continuously every 6 hours
 - `just verify` — test one download per channel
 - `just summary` — list downloaded files

@@ -38,11 +38,18 @@ Once `sec_uid` is resolved, the scheduler uses `https://www.tiktok.com/@<sec_uid
 
 ## Run
 
-One-shot:
+One-shot (respects `MIN_INTERVAL_SECONDS` per channel):
 
 ```bash
 just run
 # or: .venv/bin/python -m ticktock run
+```
+
+Start immediately, bypassing the cooldown:
+
+```bash
+just run --force
+# or: .venv/bin/python -m ticktock run --force
 ```
 
 Watch mode (every 6 hours by default):
@@ -56,19 +63,25 @@ Test one download per channel:
 
 ```bash
 just verify
-# or: .venv/bin/python -m ticktock --force run --max-downloads 1
+# or: .venv/bin/python -m ticktock run --force --max-downloads 1
 ```
 
 Check a single channel:
 
 ```bash
-just run -- --channel dhdud3516
+just run --channel dhdud3516
 ```
 
 Limit how many videos to pull in a single run:
 
 ```bash
-just run -- --max-downloads 5
+just run --max-downloads 5
+```
+
+Combine them:
+
+```bash
+just run --force --max-downloads 1 --channel dhdud3516
 ```
 
 ## Just recipes

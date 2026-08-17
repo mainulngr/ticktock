@@ -68,21 +68,26 @@ def _watch(args: argparse.Namespace, config: AppConfig) -> int:
         time.sleep(args.interval)
 
 
+def _add_common_args(p: argparse.ArgumentParser) -> None:
+    p.add_argument("--force", action="store_true", help="bypass interval checks")
+    p.add_argument("--channel", action="append", help="run only this channel id")
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="TikTok download scheduler")
     parser.add_argument("-c", "--config", default="settings.toml", help="channel config")
-    parser.add_argument("--force", action="store_true", help="bypass interval checks")
-    parser.add_argument("--channel", action="append", help="run only this channel id")
 
     sub = parser.add_subparsers(dest="command", required=True)
 
     run_p = sub.add_parser("run", help="run one download cycle")
+    _add_common_args(run_p)
     run_p.add_argument(
         "-n", "--max-downloads", type=int, default=None, help="download at most N videos per run"
     )
     run_p.set_defaults(func=_run)
 
     watch_p = sub.add_parser("watch", help="run continuously")
+    _add_common_args(watch_p)
     watch_p.add_argument(
         "-i", "--interval", type=int, default=21600, help="seconds between runs (default 21600)"
     )

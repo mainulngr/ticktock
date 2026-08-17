@@ -14,15 +14,15 @@ resolve:
 
 # run one download cycle
 run *args="":
-    {{python}} -m ticktock {{args}} run
+    {{python}} -m ticktock run {{args}}
 
 # run continuously (default 6h)
 watch *args="":
-    {{python}} -m ticktock {{args}} watch
+    {{python}} -m ticktock watch {{args}}
 
 # test one download per channel
 verify:
-    {{python}} -m ticktock --force run --max-downloads 1
+    {{python}} -m ticktock run --force --max-downloads 1
 
 # clean runtime data (downloads + state)
 clean:
