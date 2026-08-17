@@ -1,0 +1,11 @@
+intent: Add the bark_laugh TikTok profile and investigate the original "Phanith Small" cat AI account among several similar-looking clone handles.
+actions_taken:
+  - Added bark_laugh (display name "Bark And Laugh", resolved sec_uid) to settings.toml.
+  - Probed TikTok for multiple phanith/smallphanith handle variations using yt-dlp and parsed video counts, oldest timestamps, and display names.
+  - Found phanith_small (♎️ Phanith Small ♎️) with 220 videos and oldest video from 1700208694 (~Nov 2023), making it the strongest candidate for the original account.
+  - Confirmed phanith.small5, phanith.small6, phanith.small09, and smallphanith4 all use the same generic display name "Phanith Small" and have only ~120 videos with very recent newest and older but similar oldest videos, consistent with repost/clone accounts.
+  - Added phanith_small to settings.toml as the likely original.
+files_modified:
+  - settings.toml
+  - _journal/reports/260817_006_investigate_and_add_phanith_and_bark.yaml
+notes: "Pending user decision: remove the likely clone accounts (phanith_small6, phanith_small09) and do not add smallphanith4."

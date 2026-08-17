@@ -107,3 +107,17 @@ username = "phanith.small09"
 name = "Phanith Small"
 sec_uid = "MS4wLjABAAAAizy2CmSNquZoIxxEEw-5J9IsjSzp8tF6zLbAmDkjaRAAxHM39zhpK3rjjo_b0id6"
 output_dir = "phanith_small09"
+
+[[channel]]
+id = "bark_laugh"
+username = "bark_laugh"
+name = "Bark And Laugh"
+sec_uid = "MS4wLjABAAAAuTua86PlX_HXyqSECWns151aKVZ-zl2rMaVyDKFPrqfcBIG2MMq_BrItgUnkHCRO"
+output_dir = "bark_laugh"
+
+[[channel]]
+id = "phanith_small"
+username = "phanith_small"
+name = "♎️ Phanith Small ♎️"
+sec_uid = "MS4wLjABAAAAnyGx68paZ-xR8EOROkBe922BJZhJpe9mG2g-ZUvr17FV29xRVti8bCiF_N-ROolE"
+output_dir = "phanith_small"
