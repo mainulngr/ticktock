@@ -28,6 +28,10 @@ verify:
 clean:
     rm -rf downloads data
 
+# full clean slate: delete all downloads and state, with confirmation
+[confirm("This will delete all downloaded videos and state. Continue? [y/N]")]
+clean-slate: clean
+
 # show summary of downloaded files
 summary:
     @find downloads -type f | sort | sed 's#^downloads/##'

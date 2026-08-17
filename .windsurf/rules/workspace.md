@@ -34,6 +34,7 @@ TikTok profile download scheduler. Downloads videos on a schedule with chronolog
 - `just verify` — test one download per channel
 - `just summary` — list downloaded files
 - `just clean` — remove downloads and state
+- `just clean-slate` — remove downloads and state with confirmation
 
 ## Architectural notes
 - Each channel has a stable `id` (derived from first-known username) plus the mutable `username` and resolved `sec_uid`/`name`.

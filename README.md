@@ -92,8 +92,9 @@ just resolve  # resolve channel names/sec_uids
 just run      # one-shot download
 just watch    # continuous download
 just verify   # one download per channel
-just summary  # list downloaded files
-just clean    # remove downloads and state
+just summary     # list downloaded files
+just clean       # remove downloads and state
+just clean-slate # remove downloads and state (confirms first)
 ```
 
 ## How it works

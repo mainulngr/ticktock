@@ -1,0 +1,11 @@
+intent: Add a just recipe that gives a clean slate by deleting downloads and state, with confirmation.
+actions_taken:
+  - Added a `clean-slate` recipe to justfile that depends on `clean` and uses `just`'s `[confirm]` attribute to ask before deleting.
+  - Updated `.windsurf/rules/workspace.md` and `README.md` to list the new `just clean-slate` command.
+  - Committed the previous uncommitted CLI/justfile/README/workspace changes first to keep the repo clean.
+files_modified:
+  - justfile
+  - .windsurf/rules/workspace.md
+  - README.md
+  - _journal/reports/260817_005_add_clean_slate_recipe.yaml
+notes: "`just clean` still removes downloads and state without confirmation. `just clean-slate` asks first."
