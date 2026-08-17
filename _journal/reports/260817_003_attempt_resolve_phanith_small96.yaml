@@ -1,0 +1,10 @@
+intent: Add the TikTok profile phanith.small96 to the channel list and resolve its metadata.
+actions_taken:
+  - Appended a new channel block to settings.toml with id "phanith_small96" and username "phanith.small96".
+  - Ran `just resolve`; all existing channels resolved or returned 429, but phanith_small96 failed with "Unable to extract secondary user ID".
+  - Manually tested yt-dlp against https://www.tiktok.com/@phanith.small96 and the bare phanithsmall96 handle; both failed with the same error.
+  - Searched the web and found no public evidence of an active phanith.small96 TikTok account.
+files_modified:
+  - settings.toml
+  - _journal/reports/260817_003_attempt_resolve_phanith_small96.yaml
+notes: "Resolution is blocked: yt-dlp needs either a valid sec_uid or a sample video URL to extract the channel_id. dr_bananapu still returns HTTP 429."

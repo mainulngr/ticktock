@@ -100,3 +100,10 @@ username = "phanith.small6"
 name = "Phanith Small"
 sec_uid = "MS4wLjABAAAAjBK-ZQbZwB3RLAHKNgbqn9HeDWg6HHvSJ8u1VZ1moHFCUgOFqgJRJI44tKVdOPsR"
 output_dir = "phanith_small6"
+
+[[channel]]
+id = "phanith_small96"
+username = "phanith.small96"
+name = "phanith.small96"
+sec_uid = ""
+output_dir = "phanith_small96"
