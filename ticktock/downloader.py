@@ -72,11 +72,9 @@ class Downloader:
                 ts = int(datetime.strptime(ts_str, date_fmt).timestamp())
             except ValueError:
                 ts = 0
-            self.state.record_video(
-                Video(video_id=video_id, channel_id=channel.id, timestamp=ts),
-                file_path=path,
-            )
-            self.state.update_latest_upload_timestamp(channel.id, ts)
+            self.state.set_downloaded(video_id, path, ts)
+
+        self.state.update_latest_from_downloaded(channel.id)
 
     def download(self, channel: Channel, max_downloads: int | None = None) -> List[DownloadResult]:
         """Download new videos for a single channel."""
@@ -89,11 +87,10 @@ class Downloader:
             logger.info("no videos found for %s", channel.id)
             return []
 
-        # Track known videos and update latest timestamp even if download fails.
+        # Track known videos from the list, but only advance the latest timestamp
+        # after we confirm the files are actually on disk.
         for video in videos:
             self.state.record_video(video)
-        latest = max(v.timestamp for v in videos)
-        self.state.update_latest_upload_timestamp(channel.id, latest)
 
         new_videos = [v for v in videos if not self.state.is_downloaded(v.video_id)]
 
@@ -113,6 +110,8 @@ class Downloader:
                 self.ytdlp.download_channel(channel.url(), output_dir, archive_path, dateafter, max_downloads=max_downloads)
         except YtDlpError as e:
             logger.error("download failed for %s: %s", channel.id, e)
+            # Record any files that made it onto disk before the error.
+            self._sync_state_from_disk(channel)
             return [DownloadResult(v, error=str(e)) for v in new_videos]
 
         # Re-scan folder to record final file paths and latest upload times.

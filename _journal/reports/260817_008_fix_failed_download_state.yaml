@@ -1,0 +1,14 @@
+intent: Fix the state tracking bug where failed downloads still advanced the "latest" timestamp, causing missed retries, and repair the existing broken state.
+actions_taken:
+  - Identified that `data/state.db` had 1,177 videos recorded with `file_path IS NULL` and `latest_upload_timestamp` advanced to the newest listed video.
+  - Fixed `ticktock/downloader.py` so it no longer advances `latest_upload_timestamp` before a successful download and records partial downloads from disk when `yt-dlp` errors out.
+  - Added `State.set_downloaded()` and `State.update_latest_from_downloaded()` in `ticktock/state.py` to mark files on disk and update the latest timestamp from actually downloaded videos without wiping title/metadata.
+  - Made `State.record_video()` preserve existing title and metadata when syncing from disk.
+  - Ran a one-off repair to sync the 500 existing files on disk into `state.db` and reset `latest_upload_timestamp` to 0 for all channels so the next run re-lists everything and `yt-dlp`'s archive skips already-downloaded files.
+  - Smoke-tested `just run --force --channel nature_taless --max-downloads 1`; it correctly continued with the next undownloaded video.
+files_modified:
+  - ticktock/downloader.py
+  - ticktock/state.py
+  - data/state.db
+  - _journal/reports/260817_008_fix_failed_download_state.yaml
+notes: "`data/state.db` is gitignored and was repaired in place. Channels other than `nature_taless` have `latest_upload_timestamp=0`; the next `just run --force` will re-list all and resume missing downloads."

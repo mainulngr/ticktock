@@ -126,6 +126,22 @@ class State:
                 (timestamp, channel_id),
             )
 
+    def update_latest_from_downloaded(self, channel_id: str) -> None:
+        """Set latest_upload_timestamp to the newest actually downloaded video."""
+        with self._connection() as conn:
+            conn.execute(
+                """
+                UPDATE channels
+                SET latest_upload_timestamp = (
+                    SELECT COALESCE(MAX(upload_timestamp), 0)
+                    FROM videos
+                    WHERE channel_id = ? AND file_path IS NOT NULL
+                )
+                WHERE id = ?
+                """,
+                (channel_id, channel_id),
+            )
+
     def is_downloaded(self, video_id: str) -> bool:
         with self._connection() as conn:
             row = conn.execute(
@@ -140,11 +156,12 @@ class State:
                 INSERT INTO videos (video_id, channel_id, title, upload_timestamp, file_path, downloaded_at, metadata)
                 VALUES (:video_id, :channel_id, :title, :upload_timestamp, :file_path, :downloaded_at, :metadata)
                 ON CONFLICT(video_id) DO UPDATE SET
-                    title = excluded.title,
+                    channel_id = excluded.channel_id,
+                    title = COALESCE(NULLIF(excluded.title, ''), videos.title),
                     upload_timestamp = excluded.upload_timestamp,
                     file_path = COALESCE(excluded.file_path, videos.file_path),
                     downloaded_at = COALESCE(excluded.downloaded_at, videos.downloaded_at),
-                    metadata = excluded.metadata
+                    metadata = COALESCE(NULLIF(excluded.metadata, '{}'), videos.metadata)
                 """,
                 {
                     "video_id": video.video_id,
@@ -163,6 +180,26 @@ class State:
                         },
                         default=str,
                     ),
+                },
+            )
+
+    def set_downloaded(self, video_id: str, file_path: Path, timestamp: int = 0) -> None:
+        """Mark a video as downloaded without overwriting title/metadata."""
+        with self._connection() as conn:
+            conn.execute(
+                """
+                INSERT INTO videos (video_id, channel_id, title, upload_timestamp, file_path, downloaded_at, metadata)
+                VALUES (:video_id, '', '', :upload_timestamp, :file_path, :downloaded_at, '{}')
+                ON CONFLICT(video_id) DO UPDATE SET
+                    file_path = COALESCE(excluded.file_path, videos.file_path),
+                    downloaded_at = COALESCE(excluded.downloaded_at, videos.downloaded_at),
+                    upload_timestamp = MAX(excluded.upload_timestamp, videos.upload_timestamp)
+                """,
+                {
+                    "video_id": video_id,
+                    "upload_timestamp": timestamp,
+                    "file_path": str(file_path),
+                    "downloaded_at": datetime.utcnow().isoformat(),
                 },
             )
 
