@@ -1,0 +1,10 @@
+intent: Start the continuous download scheduler with a 1-hour interval and 10 max downloads per cycle.
+actions_taken:
+  - Started `just watch --max-downloads 10 --interval 3600` in the background using nohup.
+  - Captured the PID to data/scheduler.pid and redirected output to data/scheduler.log.
+  - Verified the process is running and the first cycle began (log shows 608 new videos for phanith_small).
+files_modified:
+  - data/scheduler.pid
+  - data/scheduler.log
+  - _journal/reports/260818_001_start_scheduler_1h.yaml
+notes: "The scheduler runs indefinitely. It respects MIN_INTERVAL_SECONDS=3600 from .env, so each channel is checked at most once per hour. Stop with `kill $(cat data/scheduler.pid)`."
