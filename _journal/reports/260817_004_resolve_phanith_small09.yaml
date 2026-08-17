@@ -1,0 +1,11 @@
+intent: Replace the unresolved phanith.small96 placeholder with phanith.small09 and resolve its metadata.
+actions_taken:
+  - Replaced the phanith_small96 channel block in settings.toml with phanith_small09.
+  - Ran `just resolve`; it failed with a 429 for phanith_small09 and dr_bota1, likely due to rate limiting.
+  - After a short wait, manually queried the profile with `yt-dlp --flat-playlist` and extracted the sec_uid and display name from the first video's metadata.
+  - Updated settings.toml with the resolved name and sec_uid.
+  - Verified by running `just run --force --channel phanith_small09 --max-downloads 1`; one video downloaded successfully to downloads/phanith_small09.
+files_modified:
+  - settings.toml
+  - _journal/reports/260817_004_resolve_phanith_small09.yaml
+notes: "Manual resolution was required because the batch resolver hit TikTok's 429 rate limit on this account. Future resolve passes should pick up the stored sec_uid."

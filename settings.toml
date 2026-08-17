@@ -102,8 +102,8 @@ sec_uid = "MS4wLjABAAAAjBK-ZQbZwB3RLAHKNgbqn9HeDWg6HHvSJ8u1VZ1moHFCUgOFqgJRJI44t
 output_dir = "phanith_small6"
 
 [[channel]]
-id = "phanith_small96"
-username = "phanith.small96"
-name = "phanith.small96"
-sec_uid = ""
-output_dir = "phanith_small96"
+id = "phanith_small09"
+username = "phanith.small09"
+name = "Phanith Small"
+sec_uid = "MS4wLjABAAAAizy2CmSNquZoIxxEEw-5J9IsjSzp8tF6zLbAmDkjaRAAxHM39zhpK3rjjo_b0id6"
+output_dir = "phanith_small09"
