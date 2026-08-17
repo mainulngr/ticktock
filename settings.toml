@@ -95,20 +95,6 @@ sec_uid = "MS4wLjABAAAAHpDX9qJNQzB0gpG--E3SnCTXKtJQJFQAH3wZT4I49rC2qzEX8U2MUVfZ7
 output_dir = "tjohnhutcheson"
 
 [[channel]]
-id = "phanith_small6"
-username = "phanith.small6"
-name = "Phanith Small"
-sec_uid = "MS4wLjABAAAAjBK-ZQbZwB3RLAHKNgbqn9HeDWg6HHvSJ8u1VZ1moHFCUgOFqgJRJI44tKVdOPsR"
-output_dir = "phanith_small6"
-
-[[channel]]
-id = "phanith_small09"
-username = "phanith.small09"
-name = "Phanith Small"
-sec_uid = "MS4wLjABAAAAizy2CmSNquZoIxxEEw-5J9IsjSzp8tF6zLbAmDkjaRAAxHM39zhpK3rjjo_b0id6"
-output_dir = "phanith_small09"
-
-[[channel]]
 id = "bark_laugh"
 username = "bark_laugh"
 name = "Bark And Laugh"
@@ -121,3 +107,10 @@ username = "phanith_small"
 name = "♎️ Phanith Small ♎️"
 sec_uid = "MS4wLjABAAAAnyGx68paZ-xR8EOROkBe922BJZhJpe9mG2g-ZUvr17FV29xRVti8bCiF_N-ROolE"
 output_dir = "phanith_small"
+
+[[channel]]
+id = "animals_tv217"
+username = "animals.tv217"
+name = "Animals TV"
+sec_uid = "MS4wLjABAAAAggtMkJ7iWmUFHIw06uoMSFIzy08oGEzRhBtVTg__qvMB2snp7hwRa_PWnanNIr1F"
+output_dir = "animals_tv217"

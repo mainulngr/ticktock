@@ -1,0 +1,9 @@
+intent: Add the animals.tv217 profile and replace the suspected Phanith clone accounts with the original candidate phanith_small.
+actions_taken:
+  - Resolved animals.tv217 via yt-dlp (display name "Animals TV", 502 videos) and added it to settings.toml as animals_tv217.
+  - Removed phanith_small6 and phanith_small09 blocks from settings.toml.
+  - Kept phanith_small (the likely original with 220 videos and oldest content from late 2023).
+files_modified:
+  - settings.toml
+  - _journal/reports/260817_007_add_animals_and_replace_phanith.yaml
+notes: "Downloaded videos under downloads/phanith_small6 and downloads/phanith_small09 remain on disk. Remove them manually or run `just clean-slate` if you want a full reset."
