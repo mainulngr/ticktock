@@ -22,6 +22,7 @@ class AppConfig:
     cookies_file: Path | None
     cookies_from_browser: str | None
     refresh_cookies: bool
+    list_cache_ttl: timedelta
     sleep_requests: float | None
     sleep_interval: float | None
     max_sleep_interval: float | None
@@ -39,6 +40,11 @@ def _float_env(name: str) -> float | None:
     return float(value) if value else None
 
 
+def _int_env(name: str, default: int) -> int:
+    value = os.getenv(name)
+    return int(value) if value else default
+
+
 def _bool_env(name: str, default: bool = False) -> bool:
     value = os.getenv(name, str(default).lower())
     return value.lower() in ("1", "true", "yes", "on")
@@ -54,6 +60,7 @@ def load_env_config() -> AppConfig:
         cookies_file=Path(c) if (c := os.getenv("TIKTOK_COOKIES_FILE")) else None,
         cookies_from_browser=os.getenv("TIKTOK_COOKIES_FROM_BROWSER") or None,
         refresh_cookies=_bool_env("TIKTOK_REFRESH_COOKIES"),
+        list_cache_ttl=timedelta(seconds=_int_env("LIST_CACHE_TTL", 21600)),
         sleep_requests=_float_env("YT_DLP_SLEEP_REQUESTS"),
         sleep_interval=_float_env("YT_DLP_SLEEP_INTERVAL"),
         max_sleep_interval=_float_env("YT_DLP_MAX_SLEEP_INTERVAL"),

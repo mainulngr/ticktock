@@ -62,6 +62,40 @@ class Video:
             return f"{prefix}_{self.video_id}_{safe_title[:40]}.{ext}"
         return f"{prefix}_{self.video_id}.{ext}"
 
+    def to_dict(self) -> dict:
+        return {
+            "video_id": self.video_id,
+            "channel_id": self.channel_id,
+            "title": self.title,
+            "description": self.description,
+            "timestamp": self.timestamp,
+            "url": self.url,
+            "uploader": self.uploader,
+            "duration": self.duration,
+            "view_count": self.view_count,
+            "file_path": str(self.file_path) if self.file_path else None,
+            "sec_uid": self.sec_uid,
+            "uploader_display": self.uploader_display,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict) -> "Video":
+        file_path = data.get("file_path")
+        return cls(
+            video_id=data["video_id"],
+            channel_id=data["channel_id"],
+            title=data.get("title", ""),
+            description=data.get("description", ""),
+            timestamp=data.get("timestamp", 0),
+            url=data.get("url", ""),
+            uploader=data.get("uploader", ""),
+            duration=data.get("duration"),
+            view_count=data.get("view_count"),
+            file_path=Path(file_path) if file_path else None,
+            sec_uid=data.get("sec_uid", ""),
+            uploader_display=data.get("uploader_display", ""),
+        )
+
 
 @dataclass
 class DownloadResult:

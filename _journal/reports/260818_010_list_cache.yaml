@@ -1,0 +1,22 @@
+intent: Cache full channel listings so repeated `max-downloads` runs do not re-fetch the entire channel feed every time.
+actions_taken:
+  - Added `Video.to_dict`/`from_dict` for JSON serialization.
+  - Added `ticktock/list_cache.py` with TTL-based JSON cache keyed by `channel_id` + `dateafter`.
+  - Wired `ListCache` into `Downloader.list` and `_update_list_cache` to remove downloaded videos from the cache.
+  - Added `LIST_CACHE_TTL` config (default 21600s = 6h) and documented it in `.env.example` / `workspace.md`.
+  - Restarted the scheduler; verified `data/list_cache/*.json` is created and shrinks after downloads.
+files_modified:
+  - ticktock/models.py
+  - ticktock/list_cache.py
+  - ticktock/downloader.py
+  - ticktock/config.py
+  - .env.example
+  - .windsurf/rules/workspace.md
+  - data/list_cache/phanith_small.json
+  - data/list_cache/animals_tv217.json
+  - data/scheduler.pid
+  - data/scheduler.log
+  - _journal/reports/260818_010_list_cache.yaml
+notes: |
+  The first list for a channel is still slow, but subsequent runs within the TTL will
+  load from cache and skip the expensive re-list. Set LIST_CACHE_TTL=0 to disable.

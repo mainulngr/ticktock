@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import List
 
 from .config import AppConfig
+from .list_cache import ListCache
 from .models import Channel, DownloadResult, Video
 from .state import State
 from .utils import ensure_dir
@@ -24,6 +25,11 @@ class Downloader:
         self.config = config
         self.state = state
         self.ytdlp = ytdlp
+        self.list_cache = (
+            ListCache(config.state_db_path.parent, config.list_cache_ttl)
+            if config.list_cache_ttl.total_seconds() > 0
+            else None
+        )
 
     def _archive_path(self, channel: Channel) -> Path:
         return (ensure_dir(self.config.state_db_path.parent) / self.ARCHIVE_FILENAME).resolve()
@@ -43,12 +49,24 @@ class Downloader:
     def list(self, channel: Channel) -> List[Video]:
         latest = self.state.get_latest_upload_timestamp(channel.id)
         dateafter = self._dateafter(latest)
+
+        if self.list_cache:
+            cached = self.list_cache.get(channel.id, dateafter)
+            if cached is not None:
+                logger.info("using cached list for %s (%d videos, dateafter=%s)", channel.id, len(cached), dateafter or "all")
+                return cached
+
         logger.info("listing %s (dateafter=%s)", channel.username, dateafter or "all")
         try:
-            return self.ytdlp.list_videos(channel.url(), channel.id, dateafter)
+            videos = self.ytdlp.list_videos(channel.url(), channel.id, dateafter)
         except YtDlpError as e:
             logger.error("list failed for %s: %s", channel.id, e)
             return []
+
+        if self.list_cache:
+            self.list_cache.save(channel.id, dateafter, videos)
+
+        return videos
 
     def _sync_state_from_disk(self, channel: Channel) -> None:
         """Scan the output folder and update state with found videos."""
@@ -76,6 +94,18 @@ class Downloader:
 
         self.state.update_latest_from_downloaded(channel.id)
 
+    def _update_list_cache(self, channel: Channel, videos: List[Video]) -> None:
+        """Remove downloaded videos from the list cache to keep it fresh."""
+        if not self.list_cache:
+            return
+        remaining = [v for v in videos if not self.state.is_downloaded(v.video_id)]
+        if remaining:
+            latest = self.state.get_latest_upload_timestamp(channel.id)
+            dateafter = self._dateafter(latest)
+            self.list_cache.save(channel.id, dateafter, remaining)
+        else:
+            self.list_cache.invalidate(channel.id)
+
     def download(self, channel: Channel, max_downloads: int | None = None) -> List[DownloadResult]:
         """Download new videos for a single channel."""
         output_dir = self._output_dir(channel)
@@ -85,6 +115,8 @@ class Downloader:
 
         if not videos:
             logger.info("no videos found for %s", channel.id)
+            if self.list_cache:
+                self.list_cache.invalidate(channel.id)
             return []
 
         # Track known videos from the list, but only advance the latest timestamp
@@ -97,6 +129,7 @@ class Downloader:
         if not new_videos:
             logger.info("no new videos for %s", channel.id)
             self._sync_state_from_disk(channel)
+            self._update_list_cache(channel, videos)
             return []
 
         logger.info("downloading %d new video(s) for %s", len(new_videos), channel.id)
@@ -112,9 +145,11 @@ class Downloader:
             logger.error("download failed for %s: %s", channel.id, e)
             # Record any files that made it onto disk before the error.
             self._sync_state_from_disk(channel)
+            self._update_list_cache(channel, videos)
             return [DownloadResult(v, error=str(e)) for v in new_videos]
 
         # Re-scan folder to record final file paths and latest upload times.
         self._sync_state_from_disk(channel)
+        self._update_list_cache(channel, videos)
 
         return [DownloadResult(v) for v in new_videos]
