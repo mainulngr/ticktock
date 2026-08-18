@@ -1,0 +1,16 @@
+intent: Replace random 20-40s download sleep with a fixed 30s sleep, and increase request sleep to 15s.
+actions_taken:
+  - Set .env to YT_DLP_SLEEP_REQUESTS=15, SLEEP_INTERVAL=30, MAX_SLEEP_INTERVAL=30 (fixed, no randomness).
+  - Updated .env.example with the same fixed values.
+  - Restarted scheduler with `just restart`.
+  - Verified log now shows consistent `Sleeping 15.0 seconds` and `Sleeping 30.00 seconds`.
+files_modified:
+  - .env
+  - .env.example
+  - data/scheduler.pid
+  - data/scheduler.log
+  - _journal/reports/260818_017_fixed_consistent_yt_dlp_sleeps.yaml
+notes: |
+  Total gap between downloads is now ~45s (15s before webpage + 30s before download).
+  An occasional `Unexpected response from webpage request` still occurs for individual videos;
+  this is a per-video yt-dlp/TikTok issue, not a rate limit.
