@@ -30,7 +30,9 @@ TikTok profile download scheduler. Downloads videos on a schedule with chronolog
 - `just run --force` — start immediately, bypass per-channel interval
 - `just run --max-downloads 5` — limit videos per run
 - `just run --channel dhdud3516` — run one channel only
-- `just watch` — run continuously every 6 hours
+- `just watch` — run continuously every `MIN_INTERVAL_SECONDS`
+- `just stop` — stop the running scheduler
+- `just restart` — stop and restart the scheduler
 - `just verify` — test one download per channel
 - `just summary` — list downloaded files
 - `just status` — per-channel completion and pending count
@@ -44,6 +46,6 @@ TikTok profile download scheduler. Downloads videos on a schedule with chronolog
 - Downloads are idempotent by video id; state is stored in `data/state.db` and a `data/yt-dlp-archive.txt`.
 - Output filenames use `YYMMDD_HHMMSS_<video_id>` for chronological sorting.
 - Scheduler respects `min_interval` and per-channel `last_checked_at` to avoid hammering TikTok.
-- `.env` supports `TIKTOK_COOKIES_FILE` / `TIKTOK_COOKIES_FROM_BROWSER`, optional `TIKTOK_REFRESH_COOKIES=true` (re-export from browser before each cycle), `LIST_CACHE_TTL` (cache channel listings), `SLEEP_BETWEEN_CHANNELS` (pause between channels), and yt-dlp sleep options to mitigate 429 rate limits.
+- `.env` supports `TIKTOK_COOKIES_FILE` / `TIKTOK_COOKIES_FROM_BROWSER`, optional `TIKTOK_REFRESH_COOKIES=true` (re-export from browser before each cycle), `MIN_INTERVAL_SECONDS` (per-channel due interval), `LIST_CACHE_TTL` (cache channel listings), `SLEEP_BETWEEN_CHANNELS` (pause between channels), and yt-dlp sleep options to mitigate 429/403 rate limits.
 - `just refresh-cookies` only keeps TikTok-domain cookies, not the whole browser session.
 - Channel listings are cached under `data/list_cache/` so `max-downloads` runs do not re-list the whole channel every time.

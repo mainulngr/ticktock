@@ -1,0 +1,16 @@
+intent: Balance scheduler frequency/throughput, and provide safe stop/restart commands.
+actions_taken:
+  - Set `.env` MIN_INTERVAL_SECONDS=1800 and restart with --max-downloads 10 --interval 1800.
+  - Added `just stop` and `just restart` recipes; restart stops any existing scheduler first.
+  - Updated `.windsurf/rules/workspace.md` with new commands and 403 note.
+  - Restarted scheduler using `just restart`; it immediately used the cached list and began downloading.
+files_modified:
+  - .env
+  - justfile
+  - .windsurf/rules/workspace.md
+  - data/scheduler.pid
+  - data/scheduler.log
+  - _journal/reports/260818_016_balance_and_just_restart.yaml
+notes: |
+  The progress % lines are the same video (yt-dlp progress for a single download), not parallel.
+  30-minute cycles and max 10 downloads keep bursts short and give the account more rest.
