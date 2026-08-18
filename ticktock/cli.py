@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Sequence
 
 from .config import AppConfig, ensure_paths, load_channels, load_env_config
+from .cookies import refresh as refresh_cookies
 from .downloader import Downloader
 from .resolver import Resolver
 from .scheduler import Scheduler
@@ -37,6 +38,15 @@ def _resolve(args: argparse.Namespace, config: AppConfig) -> int:
     channels = load_channels(args.config)
     resolver = Resolver(YtDlp(config))
     resolver.resolve_and_save(channels, Path(args.config))
+    return 0
+
+
+def _refresh_cookies(args: argparse.Namespace, config: AppConfig) -> int:
+    browser = args.browser or config.cookies_from_browser
+    if not browser:
+        logging.error("no browser configured; set TIKTOK_COOKIES_FROM_BROWSER or pass --browser")
+        return 1
+    refresh_cookies(browser, Path(args.output))
     return 0
 
 
@@ -108,6 +118,11 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     status_p = sub.add_parser("status", help="show download status for all channels")
     status_p.set_defaults(func=_status)
+
+    refresh_p = sub.add_parser("refresh-cookies", help="export browser cookies to cookies.txt")
+    refresh_p.add_argument("-b", "--browser", default=None, help="browser name (default: TIKTOK_COOKIES_FROM_BROWSER)")
+    refresh_p.add_argument("-o", "--output", default="cookies.txt", help="output cookie file")
+    refresh_p.set_defaults(func=_refresh_cookies)
 
     args = parser.parse_args(argv)
     config = load_env_config()

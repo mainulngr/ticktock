@@ -1,0 +1,21 @@
+intent: Add a command to export Vivaldi cookies to a file so the browser can be closed.
+actions_taken:
+  - Noted that `learn.english.with.jamie` is already configured as `learn_english_with_jamie`.
+  - Added `ticktock/cookies.py` and `refresh-cookies` CLI subcommand to export browser cookies to `cookies.txt`.
+  - Added `just refresh-cookies` recipe and documented it in `workspace.md`.
+  - Ran `just refresh-cookies` to create `cookies.txt` (857 cookies).
+  - Switched `.env` from `TIKTOK_COOKIES_FROM_BROWSER=vivaldi` to `TIKTOK_COOKIES_FILE=cookies.txt`.
+  - Restarted the scheduler so it uses the file-based cookies.
+files_modified:
+  - ticktock/cookies.py
+  - ticktock/cli.py
+  - justfile
+  - .windsurf/rules/workspace.md
+  - .env
+  - cookies.txt
+  - data/scheduler.pid
+  - _journal/reports/260818_007_cookie_refresh_command.yaml
+notes: |
+  The cookies file is a snapshot. If TikTok expires the session, re-run `just refresh-cookies`
+  while logged into Vivaldi, then restart the scheduler. Adding a username/password to `.env`
+  does not help — yt-dlp does not support TikTok login with credentials, only cookies.

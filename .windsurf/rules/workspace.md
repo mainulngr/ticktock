@@ -34,6 +34,7 @@ TikTok profile download scheduler. Downloads videos on a schedule with chronolog
 - `just verify` — test one download per channel
 - `just summary` — list downloaded files
 - `just status` — per-channel completion and pending count
+- `just refresh-cookies` — export Vivaldi cookies to `cookies.txt`
 - `just clean` — remove downloads and state
 - `just clean-slate` — remove downloads and state with confirmation
 

@@ -39,3 +39,7 @@ summary:
 # show per-channel download status
 status:
     {{python}} -m ticktock status
+
+# export browser cookies to cookies.txt (run while logged into the browser)
+refresh-cookies:
+    {{python}} -m ticktock refresh-cookies
