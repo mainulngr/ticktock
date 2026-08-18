@@ -1,0 +1,13 @@
+intent: Check whether the scheduled download is running and if the first full downloads are complete.
+actions_taken:
+  - Confirmed `just watch --max-downloads 10 --interval 3600` is alive (PIDs 575055, 575059) since 2026-08-18 00:02.
+  - Inspected `data/scheduler.log`, `data/state.db`, and `downloads/`.
+  - Determined that all 17 channels were checked at least once by 01:19.
+  - Calculated remaining new videos per channel from the latest log entries.
+files_modified:
+  - _journal/reports/260818_002_scheduler_status.yaml
+notes: |
+  Full back-catalog downloads are not finished for the larger channels.
+  5 channels currently report 0 new videos (dr_bota1, botanyphddiariesgr, nature_taless, fridge_111, anmopaa).
+  7 channels still have 200-540 pending videos, which will take many more hours at 10 downloads/hour.
+  Recent logs also show HTTP 429 rate-limit and "Unable to extract universal data for rehydration" errors.
