@@ -1,0 +1,14 @@
+intent: Use Vivaldi browser cookies to avoid TikTok 429 rate limits.
+actions_taken:
+  - Confirmed yt-dlp supports `vivaldi` for `--cookies-from-browser` and the profile exists at ~/.config/vivaldi.
+  - Added `TIKTOK_COOKIES_FROM_BROWSER=vivaldi` to `.env`.
+  - Restarted the scheduler to load the new configuration.
+  - Verified with `just run --channel babyenglishdaily_mia --force --max-downloads 1`; listing and download succeeded with no 429 error.
+  - Confirmed `downloads/babyenglishdaily_mia/` now has 2 files and `just status` shows 2 done / 286 pending.
+files_modified:
+  - .env
+  - data/scheduler.pid
+  - _journal/reports/260818_005_enable_vivaldi_cookies.yaml
+notes: |
+  The .env file is gitignored, so the cookie setting is local-only.
+  The scheduler is now running with cookie authentication and sleeping until its next hourly cycle.
