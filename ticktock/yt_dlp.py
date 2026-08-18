@@ -131,6 +131,33 @@ class YtDlp:
         entry = entries[0]
         return entry.get("timestamp") or 0
 
+    def _run_stream(self, args: List[str], cwd: Path | None = None, timeout: int | None = None) -> int:
+        """Run yt-dlp and stream its output line-by-line to the log."""
+        cmd = self._base_args() + args
+        logger.debug("running: %s", " ".join(cmd))
+        try:
+            proc = subprocess.Popen(
+                cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                text=True,
+                cwd=str(cwd) if cwd else None,
+            )
+        except FileNotFoundError as e:
+            raise YtDlpError(f"yt-dlp not found: {self.config.yt_dlp_path}") from e
+
+        for raw in proc.stdout or []:
+            line = raw.rstrip().replace("\r", "")
+            if line:
+                logger.info("yt-dlp: %s", line)
+
+        try:
+            return_code = proc.wait(timeout=timeout)
+        except subprocess.TimeoutExpired:
+            proc.kill()
+            raise YtDlpError(f"yt-dlp timed out after {timeout} seconds")
+        return return_code
+
     def channel_info(self, url: str, channel_id: str) -> dict:
         """Fetch the first video to extract channel/uploader metadata."""
         args = ["--dump-json", "--playlist-items", "1", url]
@@ -147,7 +174,7 @@ class YtDlp:
         max_downloads: int | None = None,
     ) -> None:
         ensure_dir(output_dir)
-        cmd = self._base_args() + [
+        cmd = [
             "--download-archive",
             str(archive_path),
             "-o",
@@ -158,21 +185,9 @@ class YtDlp:
             cmd.extend(["--max-downloads", str(max_downloads)])
         cmd.extend(urls)
         logger.debug("downloading: %s", " ".join(cmd))
-        try:
-            proc = subprocess.run(
-                cmd,
-                capture_output=True,
-                text=True,
-                timeout=1200,
-                check=False,
-                cwd=str(output_dir),
-            )
-        except FileNotFoundError as e:
-            raise YtDlpError(f"yt-dlp not found: {self.config.yt_dlp_path}") from e
-
-        if proc.returncode not in (0, 101):
-            logger.error("yt-dlp download stderr: %s", proc.stderr.strip())
-            raise YtDlpError(f"yt-dlp download failed (code {proc.returncode}): {proc.stderr.strip()[:200]}")
+        return_code = self._run_stream(cmd, cwd=output_dir, timeout=1200)
+        if return_code not in (0, 101):
+            raise YtDlpError(f"yt-dlp download failed (code {return_code})")
 
     def download_channel(
         self,
@@ -184,7 +199,7 @@ class YtDlp:
     ) -> None:
         """Download a whole channel, letting yt-dlp's archive skip known ids."""
         ensure_dir(output_dir)
-        cmd = self._base_args() + [
+        cmd = [
             "--download-archive",
             str(archive_path),
             "-o",
@@ -198,23 +213,12 @@ class YtDlp:
             cmd.extend(["--max-downloads", str(max_downloads)])
         cmd.append(url)
         logger.info("downloading channel: %s (dateafter=%s)", url, dateafter or "all")
-        try:
-            proc = subprocess.run(
-                cmd,
-                capture_output=True,
-                text=True,
-                timeout=1800,
-                check=False,
-                cwd=str(output_dir),
-            )
-        except FileNotFoundError as e:
-            raise YtDlpError(f"yt-dlp not found: {self.config.yt_dlp_path}") from e
+        return_code = self._run_stream(cmd, cwd=output_dir, timeout=1800)
 
         # 101 indicates the run was intentionally cancelled (e.g. break-on-existing or max-downloads).
-        if proc.returncode not in (0, 101):
-            logger.error("yt-dlp channel download stderr: %s", proc.stderr.strip())
+        if return_code not in (0, 101):
             raise YtDlpError(
-                f"yt-dlp channel download failed (code {proc.returncode}): {proc.stderr.strip()[:200]}"
+                f"yt-dlp channel download failed (code {return_code})"
             )
 
 

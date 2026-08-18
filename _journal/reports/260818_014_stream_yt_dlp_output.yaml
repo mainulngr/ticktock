@@ -1,0 +1,15 @@
+intent: Log each individual video download as it happens so the scheduler output is not a black box.
+actions_taken:
+  - Added `YtDlp._run_stream` to run yt-dlp with `subprocess.Popen` and stream stdout/stderr lines to the logger in real time.
+  - Switched `YtDlp.download` and `YtDlp.download_channel` to use `_run_stream`.
+  - Each yt-dlp line is now logged with prefix `yt-dlp:` at INFO level.
+  - Restarted the scheduler; verified log now shows per-video lines such as `[TikTok] Extracting URL:`.
+files_modified:
+  - ticktock/yt_dlp.py
+  - data/scheduler.pid
+  - data/scheduler.log
+  - _journal/reports/260818_014_stream_yt_dlp_output.yaml
+notes: |
+  The log is now much more verbose during downloads. The output shows every video URL
+  yt-dlp tries, plus any 403/429/5xx errors. If this becomes too noisy, LOG_LEVEL can be
+  set to WARNING, but per-video progress will no longer be visible.
