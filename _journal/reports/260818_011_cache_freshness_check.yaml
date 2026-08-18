@@ -1,0 +1,16 @@
+intent: Ensure list cache does not hide newly uploaded videos by adding a freshness check against the server's newest video.
+actions_taken:
+  - Added `YtDlp.latest_video_timestamp` to fetch only the first (newest) playlist entry.
+  - Updated `Downloader.list` to compare the newest cached timestamp with the server's newest timestamp before using the cache.
+  - If a newer server timestamp is found, the cache is ignored and the channel is re-listed.
+  - If the quick check fails (e.g. 429), the cache is used as a safe fallback.
+  - Restarted the scheduler with the updated code.
+files_modified:
+  - ticktock/yt_dlp.py
+  - ticktock/downloader.py
+  - data/scheduler.pid
+  - data/scheduler.log
+  - _journal/reports/260818_011_cache_freshness_check.yaml
+notes: |
+  This makes the cache safe for new uploads: a single lightweight request checks
+  the latest video, and only if it is newer than the cache do we re-list.

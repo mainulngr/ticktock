@@ -53,8 +53,12 @@ class Downloader:
         if self.list_cache:
             cached = self.list_cache.get(channel.id, dateafter)
             if cached is not None:
-                logger.info("using cached list for %s (%d videos, dateafter=%s)", channel.id, len(cached), dateafter or "all")
-                return cached
+                newest_cached = max((v.timestamp for v in cached), default=0)
+                latest_server = self.ytdlp.latest_video_timestamp(channel.url())
+                if latest_server and latest_server <= newest_cached:
+                    logger.info("using cached list for %s (%d videos, dateafter=%s)", channel.id, len(cached), dateafter or "all")
+                    return cached
+                logger.info("cache stale for %s (server ts %s > cache ts %s), re-listing", channel.id, latest_server, newest_cached)
 
         logger.info("listing %s (dateafter=%s)", channel.username, dateafter or "all")
         try:

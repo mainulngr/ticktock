@@ -118,6 +118,19 @@ class YtDlp:
                 videos.append(video)
         return videos
 
+    def latest_video_timestamp(self, url: str) -> Optional[int]:
+        """Fetch the newest video's timestamp without a full list."""
+        args = ["--flat-playlist", "--dump-json", "--playlist-items", "1", url]
+        try:
+            entries = self._run_json_lines(args)
+        except YtDlpError as e:
+            logger.warning("failed to check latest video timestamp for %s: %s", url, e)
+            return None
+        if not entries:
+            return None
+        entry = entries[0]
+        return entry.get("timestamp") or 0
+
     def channel_info(self, url: str, channel_id: str) -> dict:
         """Fetch the first video to extract channel/uploader metadata."""
         args = ["--dump-json", "--playlist-items", "1", url]
