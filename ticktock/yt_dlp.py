@@ -34,6 +34,14 @@ class YtDlp:
         args = [str(self.config.yt_dlp_path), "--no-warnings", "--restrict-filenames"]
         if self.config.cookies_file and self.config.cookies_file.exists():
             args.extend(["--cookies", str(self.config.cookies_file)])
+        elif self.config.cookies_from_browser:
+            args.extend(["--cookies-from-browser", self.config.cookies_from_browser])
+        if self.config.sleep_requests is not None:
+            args.extend(["--sleep-requests", str(self.config.sleep_requests)])
+        if self.config.sleep_interval is not None:
+            args.extend(["--sleep-interval", str(self.config.sleep_interval)])
+        if self.config.max_sleep_interval is not None:
+            args.extend(["--max-sleep-interval", str(self.config.max_sleep_interval)])
         return args
 
     def _run_json_lines(self, args: List[str]) -> List[dict]:

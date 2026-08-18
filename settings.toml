@@ -121,3 +121,10 @@ username = "layrandlayr"
 name = "LAYR & LAYR"
 sec_uid = "MS4wLjABAAAAtxib_OrV0ZjIOX6BB1XTNXvRiNb8iZ-40IoY2Va2AahliI4ripwI9jqLYj2yFrZS"
 output_dir = "layrandlayr"
+
+[[channel]]
+id = "babyenglishdaily_mia"
+username = "babyenglishdaily.mia"
+name = "BabyenglishdailywithMia"
+sec_uid = "MS4wLjABAAAA4MMFhtJuh5fr37uTW5l5zEbkEZG17LDLyGoS5zdkmUa48Ng00F3QYJd4H6yes_y8"
+output_dir = "babyenglishdaily_mia"

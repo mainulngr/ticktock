@@ -1,0 +1,21 @@
+intent: Add `babyenglishdaily.mia` and provide cookie/sleep options to reduce TikTok 429 rate limits.
+actions_taken:
+  - Added `babyenglishdaily_mia` to `settings.toml` with resolved sec_uid and display name.
+  - Verified one video downloads successfully for the new channel.
+  - Restarted the scheduler so it picks up the new channel (PID 1115396 / 1115399).
+  - Added `.env` config for `TIKTOK_COOKIES_FROM_BROWSER` and yt-dlp sleep options.
+  - Passed the new options through to `yt-dlp` in `ticktock/yt_dlp.py`.
+  - Documented the options in `.env.example` and `workspace.md`.
+files_modified:
+  - settings.toml
+  - ticktock/config.py
+  - ticktock/yt_dlp.py
+  - .env.example
+  - .windsurf/rules/workspace.md
+  - data/scheduler.pid
+  - _journal/reports/260818_004_add_channel_and_rate_limit_options.yaml
+notes: |
+  The scheduler is running and already processing the new channel.
+  For the 429 errors, the most effective fix is an authenticated session.
+  I did not ask for the TikTok password; the recommended path is a cookies file
+  or --cookies-from-browser. The new .env options let the user configure that.

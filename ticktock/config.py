@@ -20,6 +20,10 @@ class AppConfig:
     min_interval: timedelta
     log_level: str
     cookies_file: Path | None
+    cookies_from_browser: str | None
+    sleep_requests: float | None
+    sleep_interval: float | None
+    max_sleep_interval: float | None
     yt_dlp_path: str
 
 
@@ -27,6 +31,11 @@ def load_env() -> None:
     env_path = Path(".env")
     if env_path.exists():
         load_dotenv(env_path, override=True)
+
+
+def _float_env(name: str) -> float | None:
+    value = os.getenv(name)
+    return float(value) if value else None
 
 
 def load_env_config() -> AppConfig:
@@ -37,6 +46,10 @@ def load_env_config() -> AppConfig:
         min_interval=timedelta(seconds=int(os.getenv("MIN_INTERVAL_SECONDS", "3600"))),
         log_level=os.getenv("LOG_LEVEL", "INFO"),
         cookies_file=Path(c) if (c := os.getenv("TIKTOK_COOKIES_FILE")) else None,
+        cookies_from_browser=os.getenv("TIKTOK_COOKIES_FROM_BROWSER") or None,
+        sleep_requests=_float_env("YT_DLP_SLEEP_REQUESTS"),
+        sleep_interval=_float_env("YT_DLP_SLEEP_INTERVAL"),
+        max_sleep_interval=_float_env("YT_DLP_MAX_SLEEP_INTERVAL"),
         yt_dlp_path=os.getenv("YT_DLP_PATH", "yt-dlp"),
     )
 
