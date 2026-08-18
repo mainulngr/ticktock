@@ -1,0 +1,15 @@
+intent: Add conservative yt-dlp sleep settings to protect the logged-in account from rate limits/bans.
+actions_taken:
+  - Set `YT_DLP_SLEEP_REQUESTS=2`, `YT_DLP_SLEEP_INTERVAL=10`, `YT_DLP_MAX_SLEEP_INTERVAL=20` in `.env`.
+  - Updated `.env.example` with the recommended safe defaults.
+  - Restarted the scheduler so the new settings take effect.
+  - Verified `load_env_config()` reads the new values correctly.
+files_modified:
+  - .env
+  - .env.example
+  - data/scheduler.pid
+  - _journal/reports/260818_006_add_safe_sleep_defaults.yaml
+notes: |
+  The scheduler is running with Vivaldi cookies and conservative sleeps.
+  Next cycle will be slower but should be much less likely to trigger 429 or account flags.
+  If cycles become too slow, `YT_DLP_SLEEP_INTERVAL`/`YT_DLP_MAX_SLEEP_INTERVAL` can be lowered.
