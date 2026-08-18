@@ -44,6 +44,6 @@ TikTok profile download scheduler. Downloads videos on a schedule with chronolog
 - Downloads are idempotent by video id; state is stored in `data/state.db` and a `data/yt-dlp-archive.txt`.
 - Output filenames use `YYMMDD_HHMMSS_<video_id>` for chronological sorting.
 - Scheduler respects `min_interval` and per-channel `last_checked_at` to avoid hammering TikTok.
-- `.env` supports `TIKTOK_COOKIES_FILE` / `TIKTOK_COOKIES_FROM_BROWSER`, optional `TIKTOK_REFRESH_COOKIES=true` (re-export from browser before each cycle), `LIST_CACHE_TTL` (cache channel listings), and yt-dlp sleep options to mitigate 429 rate limits.
+- `.env` supports `TIKTOK_COOKIES_FILE` / `TIKTOK_COOKIES_FROM_BROWSER`, optional `TIKTOK_REFRESH_COOKIES=true` (re-export from browser before each cycle), `LIST_CACHE_TTL` (cache channel listings), `SLEEP_BETWEEN_CHANNELS` (pause between channels), and yt-dlp sleep options to mitigate 429 rate limits.
 - `just refresh-cookies` only keeps TikTok-domain cookies, not the whole browser session.
 - Channel listings are cached under `data/list_cache/` so `max-downloads` runs do not re-list the whole channel every time.

@@ -1,0 +1,22 @@
+intent: Eliminate request bursts by making max-downloads a global budget and adding a pause between channels.
+actions_taken:
+  - Changed `Scheduler.run` to treat `max_downloads` as a global, cross-channel budget.
+  - `run_channel` now returns the number of actually downloaded videos (before/after state count).
+  - Added `SLEEP_BETWEEN_CHANNELS` config and pause in the scheduler loop.
+  - Added `State.get_downloaded_count` to accurately track per-channel download count.
+  - Updated `.env` with `SLEEP_BETWEEN_CHANNELS=30`, started scheduler with `--max-downloads 50`.
+  - Updated `.env.example`, `workspace.md`, and CLI help text.
+files_modified:
+  - ticktock/scheduler.py
+  - ticktock/state.py
+  - ticktock/config.py
+  - ticktock/cli.py
+  - .env
+  - .env.example
+  - .windsurf/rules/workspace.md
+  - data/scheduler.pid
+  - data/scheduler.log
+  - _journal/reports/260818_012_global_download_budget_and_inter_channel_pause.yaml
+notes: |
+  The scheduler now downloads up to the global budget (e.g. 50) from one channel, then moves
+  to the next. If a channel only has 5, it downloads 5 and continues with the remaining budget.

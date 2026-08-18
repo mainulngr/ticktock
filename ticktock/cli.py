@@ -107,7 +107,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     run_p = sub.add_parser("run", help="run one download cycle")
     _add_common_args(run_p)
     run_p.add_argument(
-        "-n", "--max-downloads", type=int, default=None, help="download at most N videos per run"
+        "-n", "--max-downloads", type=int, default=None, help="download at most N videos total, shared across all channels"
     )
     run_p.set_defaults(func=_run)
 
@@ -117,7 +117,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         "-i", "--interval", type=int, default=21600, help="seconds between runs (default 21600)"
     )
     watch_p.add_argument(
-        "-n", "--max-downloads", type=int, default=None, help="download at most N videos per run"
+        "-n", "--max-downloads", type=int, default=None, help="download at most N videos total, shared across all channels"
     )
     watch_p.set_defaults(func=_watch)
 

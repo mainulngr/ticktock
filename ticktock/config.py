@@ -23,6 +23,7 @@ class AppConfig:
     cookies_from_browser: str | None
     refresh_cookies: bool
     list_cache_ttl: timedelta
+    sleep_between_channels: float | None
     sleep_requests: float | None
     sleep_interval: float | None
     max_sleep_interval: float | None
@@ -61,6 +62,7 @@ def load_env_config() -> AppConfig:
         cookies_from_browser=os.getenv("TIKTOK_COOKIES_FROM_BROWSER") or None,
         refresh_cookies=_bool_env("TIKTOK_REFRESH_COOKIES"),
         list_cache_ttl=timedelta(seconds=_int_env("LIST_CACHE_TTL", 21600)),
+        sleep_between_channels=_float_env("SLEEP_BETWEEN_CHANNELS"),
         sleep_requests=_float_env("YT_DLP_SLEEP_REQUESTS"),
         sleep_interval=_float_env("YT_DLP_SLEEP_INTERVAL"),
         max_sleep_interval=_float_env("YT_DLP_MAX_SLEEP_INTERVAL"),

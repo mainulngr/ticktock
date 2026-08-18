@@ -1,6 +1,7 @@
 """Scheduling logic to avoid hammering TikTok."""
 
 import logging
+import time
 from datetime import datetime
 from pathlib import Path
 from typing import List
@@ -37,7 +38,7 @@ class Scheduler:
         elapsed = now - channel_state.last_checked_at
         return elapsed >= self.config.min_interval
 
-    def run_channel(self, channel: Channel, now: datetime | None = None, max_downloads: int | None = None) -> None:
+    def run_channel(self, channel: Channel, now: datetime | None = None, max_downloads: int | None = None) -> int:
         now = now or datetime.utcnow()
         logger.info("checking channel: %s", channel.id)
 
@@ -50,6 +51,7 @@ class Scheduler:
             except Exception:
                 logger.exception("resolver failed for %s", channel.id)
 
+        before = self.state.get_downloaded_count(channel.id)
         results = self.downloader.download(channel, max_downloads=max_downloads)
         for result in results:
             if result.error:
@@ -57,6 +59,9 @@ class Scheduler:
 
         self.state.set_last_checked(channel.id, now)
         self.state.upsert_channel(channel)
+
+        # Return how many videos were actually downloaded.
+        return self.state.get_downloaded_count(channel.id) - before
 
     def run(
         self,
@@ -66,10 +71,25 @@ class Scheduler:
         max_downloads: int | None = None,
     ) -> None:
         now = datetime.utcnow()
-        for channel in channels:
+        remaining = max_downloads
+        for index, channel in enumerate(channels):
             if channel_ids and channel.id not in channel_ids:
                 continue
             if force or self.is_due(channel, now):
-                self.run_channel(channel, now, max_downloads=max_downloads)
+                downloaded = self.run_channel(channel, now, max_downloads=remaining)
+                if remaining is not None:
+                    remaining -= downloaded
+                    if remaining <= 0:
+                        logger.info("global download budget exhausted")
+                        break
             else:
                 logger.info("skipping %s (checked recently)", channel.id)
+
+            # Pause between channels to avoid request bursts.
+            if (
+                self.config.sleep_between_channels
+                and index < len(channels) - 1
+                and (remaining is None or remaining > 0)
+            ):
+                logger.info("sleeping %.1f seconds before next channel", self.config.sleep_between_channels)
+                time.sleep(self.config.sleep_between_channels)
