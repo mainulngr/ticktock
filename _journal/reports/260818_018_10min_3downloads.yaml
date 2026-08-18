@@ -1,0 +1,15 @@
+intent: Shorten the wait between cycles while keeping burst small and safe.
+actions_taken:
+  - Set .env MIN_INTERVAL_SECONDS=600 (10 minutes).
+  - Changed `just restart` default to --max-downloads 3 --interval 600.
+  - Ran `just restart` and verified the new process: `python -m ticktock watch --max-downloads 3 --interval 600`.
+  - The scheduler now runs every 10 minutes and downloads at most 3 videos per cycle.
+files_modified:
+  - .env
+  - justfile
+  - data/scheduler.pid
+  - data/scheduler.log
+  - _journal/reports/260818_018_10min_3downloads.yaml
+notes: |
+  3 videos * ~45s each = ~2-3 minutes of download time, then a 10-minute rest.
+  The scheduler re-checks the newest video timestamp before using a stale list cache.

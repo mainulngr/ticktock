@@ -26,7 +26,7 @@ stop:
     @ps aux | awk '/[t]icktock watch/ {print $2}' | while read pid; do kill "$pid" 2>/dev/null || true; done
 
 # restart the scheduler (stops any existing one first)
-restart *args="--max-downloads 10 --interval 1800":
+restart *args="--max-downloads 3 --interval 600":
     @just stop
     @nohup {{python}} -m ticktock watch {{args}} >> data/scheduler.log 2>&1 & echo $! > data/scheduler.pid
 
