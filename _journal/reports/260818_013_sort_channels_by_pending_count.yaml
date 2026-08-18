@@ -1,0 +1,18 @@
+intent: Prioritize channels with the most pending videos and defer channels with 0 known remaining.
+actions_taken:
+  - Added `ListCache.get_count` to return the number of cached videos (or -1 if no cache).
+  - Added `Downloader.pending_count` to expose this without re-listing.
+  - Added `Scheduler._pending_count` and sorted channels descending by pending count before each cycle.
+  - Channels with unknown pending count (-1) sort first, so they get listed and prioritized.
+  - Channels with 0 known remaining sort last and are checked only if the global budget is not exhausted.
+  - Restarted the scheduler; it immediately picked `animals_tv217` (the largest pending cache) first.
+files_modified:
+  - ticktock/list_cache.py
+  - ticktock/downloader.py
+  - ticktock/scheduler.py
+  - data/scheduler.pid
+  - data/scheduler.log
+  - _journal/reports/260818_013_sort_channels_by_pending_count.yaml
+notes: |
+  The first cycle after restart is now spending its 50-download budget on the channel
+  with the most known pending videos before moving to the next.

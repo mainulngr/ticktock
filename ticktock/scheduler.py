@@ -63,6 +63,10 @@ class Scheduler:
         # Return how many videos were actually downloaded.
         return self.state.get_downloaded_count(channel.id) - before
 
+    def _pending_count(self, channel: Channel) -> int:
+        """Use the list cache to know how many videos are pending. -1 means unknown."""
+        return self.downloader.pending_count(channel)
+
     def run(
         self,
         channels: List[Channel],
@@ -72,9 +76,15 @@ class Scheduler:
     ) -> None:
         now = datetime.utcnow()
         remaining = max_downloads
+
+        if channel_ids:
+            channels = [c for c in channels if c.id in channel_ids]
+
+        # Process channels with the most pending downloads first, so channels
+        # with 0 known remaining are checked last (or skipped if budget runs out).
+        channels = sorted(channels, key=self._pending_count, reverse=True)
+
         for index, channel in enumerate(channels):
-            if channel_ids and channel.id not in channel_ids:
-                continue
             if force or self.is_due(channel, now):
                 downloaded = self.run_channel(channel, now, max_downloads=remaining)
                 if remaining is not None:

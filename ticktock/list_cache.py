@@ -29,6 +29,13 @@ class ListCache:
         created = data.get("created_at", 0)
         return (time.time() - created) < self.ttl.total_seconds()
 
+    def get_count(self, channel_id: str, dateafter: Optional[str]) -> int:
+        """Return the number of cached videos, or -1 if no valid cache."""
+        cached = self.get(channel_id, dateafter)
+        if cached is None:
+            return -1
+        return len(cached)
+
     def get(self, channel_id: str, dateafter: Optional[str]) -> Optional[List[Video]]:
         path = self._path(channel_id)
         if not path.exists():

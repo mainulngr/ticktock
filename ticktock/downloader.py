@@ -46,6 +46,14 @@ class Downloader:
         dt = datetime.utcfromtimestamp(buffer)
         return dt.strftime("%Y%m%d")
 
+    def pending_count(self, channel: Channel) -> int:
+        """Return the number of known pending videos from cache, or -1 if unknown."""
+        if not self.list_cache:
+            return -1
+        latest = self.state.get_latest_upload_timestamp(channel.id)
+        dateafter = self._dateafter(latest)
+        return self.list_cache.get_count(channel.id, dateafter)
+
     def list(self, channel: Channel) -> List[Video]:
         latest = self.state.get_latest_upload_timestamp(channel.id)
         dateafter = self._dateafter(latest)
