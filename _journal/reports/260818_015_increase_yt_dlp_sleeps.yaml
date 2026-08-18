@@ -1,0 +1,18 @@
+intent: Reduce HTTP 403 Forbidden by increasing yt-dlp sleeps after seeing 403 on video downloads.
+actions_taken:
+  - Set `.env` YT_DLP_SLEEP_REQUESTS=10, SLEEP_INTERVAL=20, MAX_SLEEP_INTERVAL=40.
+  - Restarted scheduler with `--max-downloads 20` (was 50).
+  - Updated `.env.example` to recommend the same higher values.
+  - Verified yt-dlp now sleeps 10s between requests and random 20-40s between downloads.
+  - Confirmed some videos now download successfully (e.g. `info: Downloading 1 format(s)`), while some still get 403.
+files_modified:
+  - .env
+  - .env.example
+  - data/scheduler.pid
+  - data/scheduler.log
+  - _journal/reports/260818_015_increase_yt_dlp_sleeps.yaml
+notes: |
+  403 is now intermittent rather than constant. Some TikTok videos still fail with 403,
+  likely due to the account/IP being under heavier scrutiny. Longer pauses between requests
+  and fewer downloads per cycle help. If 403s continue for many hours, a longer cooldown
+  (stop scheduler for 6-12h) may be needed.
