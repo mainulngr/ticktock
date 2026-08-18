@@ -46,7 +46,8 @@ def _refresh_cookies(args: argparse.Namespace, config: AppConfig) -> int:
     if not browser:
         logging.error("no browser configured; set TIKTOK_COOKIES_FROM_BROWSER or pass --browser")
         return 1
-    refresh_cookies(browser, Path(args.output))
+    kept = refresh_cookies(browser, Path(args.output))
+    logging.info("kept %d TikTok cookies in %s", kept, args.output)
     return 0
 
 
@@ -72,6 +73,13 @@ def _watch(args: argparse.Namespace, config: AppConfig) -> int:
     scheduler = _build_scheduler(config)
     channels = load_channels(args.config)
     while True:
+        if config.refresh_cookies and config.cookies_from_browser:
+            try:
+                output = config.cookies_file or Path("cookies.txt")
+                refresh_cookies(config.cookies_from_browser, output)
+                logging.info("refreshed cookies in %s", output)
+            except Exception:
+                logging.exception("cookie refresh failed; continuing with existing cookies")
         try:
             scheduler.run(
                 channels,

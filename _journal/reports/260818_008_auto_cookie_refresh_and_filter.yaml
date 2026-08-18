@@ -1,0 +1,24 @@
+intent: Auto-refresh only TikTok cookies at the start of each scheduler cycle and avoid storing the whole browser session.
+actions_taken:
+  - Updated `ticktock/cookies.py` to filter exported cookies to TikTok-owned domains only.
+  - Added `TIKTOK_REFRESH_COOKIES` support in `ticktock/config.py`.
+  - Made `just watch` refresh `cookies.txt` from the browser at the start of each cycle, with a graceful fallback on failure.
+  - Updated `.env` to enable `TIKTOK_REFRESH_COOKIES=true` and keep `TIKTOK_COOKIES_FROM_BROWSER=vivaldi`.
+  - Re-exported `cookies.txt` (33 of 857 cookies, all TikTok-only).
+  - Verified filtered cookies work with yt-dlp and restarted the scheduler.
+  - Documented the new option in `.env.example` and `workspace.md`.
+files_modified:
+  - ticktock/cookies.py
+  - ticktock/config.py
+  - ticktock/cli.py
+  - .env
+  - .env.example
+  - .windsurf/rules/workspace.md
+  - cookies.txt
+  - data/scheduler.pid
+  - data/scheduler.log
+  - _journal/reports/260818_008_auto_cookie_refresh_and_filter.yaml
+notes: |
+  The scheduler now refreshes cookies.txt from Vivaldi before each cycle.
+  If Vivaldi is closed, it logs a warning and continues with the existing cookies.txt.
+  Keeping only TikTok cookies limits the file to 33 entries instead of 857.
