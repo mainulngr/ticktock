@@ -23,20 +23,19 @@ class ListCache:
     def _path(self, channel_id: str) -> Path:
         return self.base_dir / f"{channel_id}.json"
 
-    def _is_valid(self, data: dict, dateafter: Optional[str]) -> bool:
-        if data.get("dateafter") != dateafter:
-            return False
+    def _is_valid(self, data: dict, dateafter: Optional[str] = None) -> bool:
+        # We now key only by channel_id; dateafter is stored for info but not part of validity.
         created = data.get("created_at", 0)
         return (time.time() - created) < self.ttl.total_seconds()
 
-    def get_count(self, channel_id: str, dateafter: Optional[str]) -> int:
+    def get_count(self, channel_id: str, dateafter: Optional[str] = None) -> int:
         """Return the number of cached videos, or -1 if no valid cache."""
         cached = self.get(channel_id, dateafter)
         if cached is None:
             return -1
         return len(cached)
 
-    def get(self, channel_id: str, dateafter: Optional[str]) -> Optional[List[Video]]:
+    def get(self, channel_id: str, dateafter: Optional[str] = None) -> Optional[List[Video]]:
         path = self._path(channel_id)
         if not path.exists():
             return None

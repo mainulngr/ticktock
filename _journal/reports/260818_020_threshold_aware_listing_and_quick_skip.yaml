@@ -1,0 +1,18 @@
+intent: Stop the scheduler from wasting time and requests on already-caught-up channels.
+actions_taken:
+  - Made ListCache key by channel_id only (dateafter no longer invalidates the cache).
+  - Added _threshold helper based on latest_upload - 2 days.
+  - Updated Downloader.list to quick-skip when server newest <= latest download, saving an empty cache.
+  - Made list pagination threshold-aware, so it keeps expanding until it finds not-yet-downloaded videos inside the download window.
+  - Updated download to use the same 2-day threshold filter.
+  - Updated scheduler _pending_count to rank channels with no cache by oldest latest_upload.
+  - Restarted scheduler; a full cycle now completes in ~3 minutes and only re-lists channels with actual new uploads.
+files_modified:
+  - ticktock/downloader.py
+  - ticktock/list_cache.py
+  - ticktock/scheduler.py
+  - _journal/reports/260818_020_threshold_aware_listing_and_quick_skip.yaml
+notes: |
+  The previous "no new videos" for phanith_small and others was correct: all recent uploads
+  are already downloaded and the old cached counts were the full backlog above the threshold.
+  The scheduler now skips those channels with a 1-request quick check instead of paginated listings.

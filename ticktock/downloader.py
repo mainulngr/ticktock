@@ -54,23 +54,40 @@ class Downloader:
         dateafter = self._dateafter(latest)
         return self.list_cache.get_count(channel.id, dateafter)
 
+    def _threshold(self, channel_id: str) -> int:
+        """Return the oldest timestamp we still consider downloadable."""
+        latest = self.state.get_latest_upload_timestamp(channel_id)
+        if not latest:
+            return 0
+        # 2-day buffer to account for same-day uploads and timezone offsets.
+        return latest - (2 * 86_400)
+
     def list(self, channel: Channel) -> List[Video]:
         latest = self.state.get_latest_upload_timestamp(channel.id)
         dateafter = self._dateafter(latest)
+        threshold = self._threshold(channel.id)
 
         if self.list_cache:
             cached = self.list_cache.get(channel.id, dateafter)
-            if cached is not None:
-                newest_cached = max((v.timestamp for v in cached), default=0)
-                latest_server = self.ytdlp.latest_video_timestamp(channel.url())
-                if latest_server and latest_server <= newest_cached:
-                    logger.info("using cached list for %s (%d videos, dateafter=%s)", channel.id, len(cached), dateafter or "all")
-                    return cached
-                logger.info("cache stale for %s (server ts %s > cache ts %s), re-listing", channel.id, latest_server, newest_cached)
+            newest_cached = max((v.timestamp for v in cached), default=0) if cached is not None else 0
+            latest_server = self.ytdlp.latest_video_timestamp(channel.url())
+
+            if latest_server and latest_server <= newest_cached:
+                logger.info("using cached list for %s (%d videos, dateafter=%s)", channel.id, len(cached), dateafter or "all")
+                return cached
+
+            # Quick-check: if the server has nothing newer than our latest download,
+            # there is nothing to do. Save an empty cache so we skip it next time.
+            if latest_server and latest_server <= latest:
+                logger.info("no new uploads for %s (server ts %s <= latest %s)", channel.id, latest_server, latest)
+                self.list_cache.save(channel.id, dateafter, [])
+                return []
+
+            logger.info("cache stale for %s (server ts %s > cache ts %s), re-listing", channel.id, latest_server, newest_cached)
 
         # Paginate listings to avoid long requests and 429s. Start with the
-        # newest 100 and keep expanding until we find undownloaded videos or
-        # run out of videos. Cap at 400 to stay within the cycle budget.
+        # newest 100 and keep expanding until we find undownloaded videos that
+        # are on/after our threshold. Cap at 400 to stay within the cycle budget.
         for batch in (100, 200, 400):
             logger.info("listing %s (dateafter=%s, max_items=%d)", channel.username, dateafter or "all", batch)
             try:
@@ -85,11 +102,14 @@ class Downloader:
             if not videos:
                 return []
 
-            # If any video in this batch is new, we have enough to work with.
-            if any(not self.state.is_downloaded(v.video_id) for v in videos):
+            # Return as soon as we find a not-yet-downloaded video that is
+            # within the download window (on/after the threshold).
+            if any(
+                not self.state.is_downloaded(v.video_id) and v.timestamp >= threshold for v in videos
+            ):
                 return videos
 
-            # The whole batch is already downloaded; try the next larger batch.
+            # The whole batch is already downloaded or too old; try the next larger batch.
             if len(videos) < batch:
                 return videos
 
@@ -147,11 +167,11 @@ class Downloader:
             return []
 
         # TikTok's channel extractor ignores --dateafter, so the list can include
-        # very old videos. Filter to videos on/after the latest known upload to
-        # avoid re-downloading the whole backlog every cycle.
-        latest = self.state.get_latest_upload_timestamp(channel.id)
-        if latest > 0:
-            threshold = latest - 86_400
+        # very old videos. Filter to videos on/after the latest known upload minus
+        # a 2-day buffer to avoid missing same-day uploads and re-downloading the
+        # whole backlog every cycle.
+        threshold = self._threshold(channel.id)
+        if threshold > 0:
             before = len(videos)
             videos = [v for v in videos if v.timestamp >= threshold]
             logger.debug("filtered %s from %d to %d videos above ts %s", channel.id, before, len(videos), threshold)

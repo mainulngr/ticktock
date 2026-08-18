@@ -64,8 +64,14 @@ class Scheduler:
         return self.state.get_downloaded_count(channel.id) - before
 
     def _pending_count(self, channel: Channel) -> int:
-        """Use the list cache to know how many videos are pending. -1 means unknown."""
-        return self.downloader.pending_count(channel)
+        """Use the list cache to know how many videos are pending. If no cache,
+        prefer channels with the oldest latest_upload (largest likely backlog)."""
+        count = self.downloader.pending_count(channel)
+        if count != -1:
+            return count
+        # No cache yet: rank by oldest latest_upload so backlogged channels go first.
+        latest = self.state.get_latest_upload_timestamp(channel.id)
+        return 1_000_000_000 - latest
 
     def run(
         self,
