@@ -30,7 +30,19 @@ class YtDlp:
     def __init__(self, config: AppConfig) -> None:
         self.config = config
 
+    def _base_list_args(self) -> List[str]:
+        """Args for listing/info calls: small request sleep, no download interval."""
+        args = [str(self.config.yt_dlp_path), "--no-warnings", "--restrict-filenames"]
+        if self.config.cookies_file and self.config.cookies_file.exists():
+            args.extend(["--cookies", str(self.config.cookies_file)])
+        elif self.config.cookies_from_browser:
+            args.extend(["--cookies-from-browser", self.config.cookies_from_browser])
+        # Keep listing fast but avoid hammering: 1s between requests.
+        args.extend(["--sleep-requests", "1"])
+        return args
+
     def _base_args(self) -> List[str]:
+        """Args for actual downloads: use the conservative sleep settings."""
         args = [str(self.config.yt_dlp_path), "--no-warnings", "--restrict-filenames"]
         if self.config.cookies_file and self.config.cookies_file.exists():
             args.extend(["--cookies", str(self.config.cookies_file)])
@@ -45,14 +57,14 @@ class YtDlp:
         return args
 
     def _run_json_lines(self, args: List[str]) -> List[dict]:
-        cmd = self._base_args() + args
+        cmd = self._base_list_args() + args
         logger.debug("running: %s", " ".join(cmd))
         try:
             proc = subprocess.run(
                 cmd,
                 capture_output=True,
                 text=True,
-                timeout=300,
+                timeout=1200,
                 check=False,
             )
         except FileNotFoundError as e:
@@ -104,10 +116,13 @@ class YtDlp:
         url: str,
         channel_id: str,
         dateafter: Optional[str] = None,
+        max_items: Optional[int] = None,
     ) -> List[Video]:
         args = ["--flat-playlist", "--dump-json"]
         if dateafter:
             args.extend(["--dateafter", dateafter])
+        if max_items:
+            args.extend(["--playlist-items", f"1-{max_items}"])
         args.append(url)
 
         entries = self._run_json_lines(args)

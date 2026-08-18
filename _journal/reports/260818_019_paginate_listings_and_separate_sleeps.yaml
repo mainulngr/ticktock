@@ -1,0 +1,20 @@
+intent: Fix channel listing timeout/429 by paginating and using a faster listing sleep.
+actions_taken:
+  - Added `_base_list_args` to `yt_dlp.py` with 1s request sleep for listing/info calls.
+  - Downloads continue to use the conservative 15s/30s sleep settings.
+  - Increased `_run_json_lines` timeout to 1200s.
+  - Added `max_items` to `yt-dlp list_videos` using `--playlist-items 1-N`.
+  - Updated `Downloader.list` to paginate: 100 -> 200 -> 400, stopping when it finds undownloaded videos or runs out.
+  - Added threshold filtering in `Downloader.download` to ignore videos older than `latest_upload - 1 day` because TikTok ignores `--dateafter`.
+  - Fixed `state.latest_upload_timestamp` typo to `state.get_latest_upload_timestamp`.
+  - Restarted scheduler; verified it now logs `listing ... (max_items=100)` and does not time out.
+files_modified:
+  - ticktock/yt_dlp.py
+  - ticktock/downloader.py
+  - data/scheduler.pid
+  - data/scheduler.log
+  - _journal/reports/260818_019_paginate_listings_and_separate_sleeps.yaml
+notes: |
+  The previous `no videos found for phanith_small` was caused by a 429/timeout during listing,
+  not because the channel was actually empty. The new paginated listing is much faster and
+  avoids that false negative.

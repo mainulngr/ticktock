@@ -68,15 +68,30 @@ class Downloader:
                     return cached
                 logger.info("cache stale for %s (server ts %s > cache ts %s), re-listing", channel.id, latest_server, newest_cached)
 
-        logger.info("listing %s (dateafter=%s)", channel.username, dateafter or "all")
-        try:
-            videos = self.ytdlp.list_videos(channel.url(), channel.id, dateafter)
-        except YtDlpError as e:
-            logger.error("list failed for %s: %s", channel.id, e)
-            return []
+        # Paginate listings to avoid long requests and 429s. Start with the
+        # newest 100 and keep expanding until we find undownloaded videos or
+        # run out of videos. Cap at 400 to stay within the cycle budget.
+        for batch in (100, 200, 400):
+            logger.info("listing %s (dateafter=%s, max_items=%d)", channel.username, dateafter or "all", batch)
+            try:
+                videos = self.ytdlp.list_videos(channel.url(), channel.id, dateafter, max_items=batch)
+            except YtDlpError as e:
+                logger.error("list failed for %s (max_items=%d): %s", channel.id, batch, e)
+                return []
 
-        if self.list_cache:
-            self.list_cache.save(channel.id, dateafter, videos)
+            if self.list_cache:
+                self.list_cache.save(channel.id, dateafter, videos)
+
+            if not videos:
+                return []
+
+            # If any video in this batch is new, we have enough to work with.
+            if any(not self.state.is_downloaded(v.video_id) for v in videos):
+                return videos
+
+            # The whole batch is already downloaded; try the next larger batch.
+            if len(videos) < batch:
+                return videos
 
         return videos
 
@@ -131,6 +146,16 @@ class Downloader:
                 self.list_cache.invalidate(channel.id)
             return []
 
+        # TikTok's channel extractor ignores --dateafter, so the list can include
+        # very old videos. Filter to videos on/after the latest known upload to
+        # avoid re-downloading the whole backlog every cycle.
+        latest = self.state.get_latest_upload_timestamp(channel.id)
+        if latest > 0:
+            threshold = latest - 86_400
+            before = len(videos)
+            videos = [v for v in videos if v.timestamp >= threshold]
+            logger.debug("filtered %s from %d to %d videos above ts %s", channel.id, before, len(videos), threshold)
+
         # Track known videos from the list, but only advance the latest timestamp
         # after we confirm the files are actually on disk.
         for video in videos:
@@ -151,7 +176,7 @@ class Downloader:
             if urls:
                 self.ytdlp.download(urls, output_dir, archive_path, max_downloads=max_downloads)
             else:
-                dateafter = self._dateafter(self.state.latest_upload_timestamp(channel.id))
+                dateafter = self._dateafter(self.state.get_latest_upload_timestamp(channel.id))
                 self.ytdlp.download_channel(channel.url(), output_dir, archive_path, dateafter, max_downloads=max_downloads)
         except YtDlpError as e:
             logger.error("download failed for %s: %s", channel.id, e)
