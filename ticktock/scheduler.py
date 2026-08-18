@@ -42,10 +42,13 @@ class Scheduler:
         logger.info("checking channel: %s", channel.id)
 
         # Resolve metadata in case the username/display name changed.
-        try:
-            self.resolver.resolve(channel)
-        except Exception:
-            logger.exception("resolver failed for %s", channel.id)
+        # Once a stable sec_uid is known, re-resolving is usually unnecessary
+        # and can trigger rate limits, so we skip it unless the sec_uid is missing.
+        if not channel.sec_uid:
+            try:
+                self.resolver.resolve(channel)
+            except Exception:
+                logger.exception("resolver failed for %s", channel.id)
 
         results = self.downloader.download(channel, max_downloads=max_downloads)
         for result in results:

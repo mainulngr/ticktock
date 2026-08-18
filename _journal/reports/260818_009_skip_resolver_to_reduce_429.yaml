@@ -1,0 +1,14 @@
+intent: Reduce HTTP 429 rate-limit errors by skipping the per-cycle resolver call for channels that already have a stable sec_uid.
+actions_taken:
+  - Confirmed 429 errors in scheduler.log on resolver and list calls, especially when many channels run in quick succession.
+  - Updated `ticktock/scheduler.py` to only call `resolver.resolve` when `channel.sec_uid` is empty.
+  - Restarted the scheduler; the new cycle now skips resolver for resolved channels.
+  - Confirmed the log no longer shows "resolving channel" for every channel.
+files_modified:
+  - ticktock/scheduler.py
+  - data/scheduler.pid
+  - data/scheduler.log
+  - _journal/reports/260818_009_skip_resolver_to_reduce_429.yaml
+notes: |
+  This removes one yt-dlp request per channel per cycle. If 429s continue,
+  the next levers are increasing YT_DLP_SLEEP_* values or MIN_INTERVAL_SECONDS.
