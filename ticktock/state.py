@@ -157,6 +157,14 @@ class State:
             ).fetchone()
         return row[0] if row else 0
 
+    def get_listed_count(self, channel_id: str) -> int:
+        with self._connection() as conn:
+            row = conn.execute(
+                "SELECT COUNT(*) FROM videos WHERE channel_id = ?",
+                (channel_id,),
+            ).fetchone()
+        return row[0] if row else 0
+
     def record_video(self, video: Video, file_path: Optional[Path] = None) -> None:
         with self._connection() as conn:
             conn.execute(

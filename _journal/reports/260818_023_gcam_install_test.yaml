@@ -1,0 +1,18 @@
+intent: Download a working GCam port for the Redmi Note 8 Pro, install it, and verify it runs.
+actions_taken:
+  - Selected NGCam_7.4.104-v1.8-fix.apk (com.google.android.GoogleCameraEng) by Nikita because the changelog explicitly lists crash fixes and exposure fixes for Redmi Note 8/8 Pro.
+  - Downloaded the APK and NikitaRn8pFinalFf.xml from Celso Azevedo's GCam Hub into /mega/zust/gdrive/akm/apk/.
+  - ADB install was blocked by MIUI's INSTALL_FAILED_USER_RESTRICTED; the user installed the APK manually from the shared folder.
+  - Granted camera, mic, storage, and location permissions via adb.
+  - Launched com.google.android.GoogleCameraEng, verified the viewfinder opened without the previous IllegalArgumentException.
+  - Took a still photo and verified it saved (gallery view opened).
+  - Switched to Video mode and recorded a short clip; no crash in logcat.
+  - Created /sdcard/GCam/Configs7/ and pushed NikitaRn8pFinalFf.xml for optional tuning.
+  - Cleaned up the temporary /data/local/tmp/ngcam.apk copy.
+files_modified:
+  - /mega/zust/gdrive/akm/apk/NGCam_7.4.104-v1.8-fix.apk
+  - /mega/zust/gdrive/akm/apk/NikitaRn8pFinalFf.xml
+  - /mega/zust/gdrive/akm/apk/Nikita-Very-Ultimate.xml
+  - /sdcard/GCam/Configs7/NikitaRn8pFinalFf.xml
+notes: >
+  NGCam 7.4.104 v1.8-fix launches and works for photo + video on the RN8 Pro (MIUI 12.5.8 / Android 11). The old MGC_6.1.021_Wyroczen can be left installed or uninstalled; the packages are different. The config XML is in /sdcard/GCam/Configs7/ and can be loaded from the app's config menu (usually by double-tapping the black area around the shutter button or via settings > configs).

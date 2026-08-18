@@ -1,0 +1,19 @@
+intent: Make the scheduler check channels with the most remaining videos first and run every 5 minutes.
+actions_taken:
+  - Added State.get_listed_count to query how many videos are known per channel.
+  - Changed Scheduler._pending_count to fall back to listed - downloaded from the database when no list cache exists.
+  - Removed ListCache.invalidate() from the "no videos" branch in Downloader.download so quick-skip empty caches persist.
+  - Changed MIN_INTERVAL_SECONDS from 600 to 300 in .env.
+  - Changed justfile restart default --interval from 600 to 300.
+  - Force-killed the stale scheduler and restarted with the new 5-minute settings.
+  - Verified the scheduler now orders checks by pending count (babyenglishdaily_mia, tinyartmagic, bark_laugh, etc.).
+files_modified:
+  - .env
+  - justfile
+  - ticktock/downloader.py
+  - ticktock/scheduler.py
+  - ticktock/state.py
+  - _journal/reports/260818_021_sort_by_db_pending_and_5min_cycle.yaml
+notes: |
+  Each watch cycle still takes several minutes because it honors SLEEP_BETWEEN_CHANNELS=30.
+  The first full cycle after restart will be a slow warm-up, but the 5-minute interval and pending-first sort are active.

@@ -162,8 +162,6 @@ class Downloader:
 
         if not videos:
             logger.info("no videos found for %s", channel.id)
-            if self.list_cache:
-                self.list_cache.invalidate(channel.id)
             return []
 
         # TikTok's channel extractor ignores --dateafter, so the list can include

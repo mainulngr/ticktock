@@ -1,0 +1,12 @@
+intent: Diagnose why GCam crashes on the connected Redmi Note 8 Pro.
+actions_taken:
+  - Ran adb devices and verified the Redmi Note 8 Pro (begonia, MIUI 12.5.8 / Android 11) is connected.
+  - Captured tombstones and live logcat for org.codeaurora.snapcam (MGC_6.1.021_Rn8ProEdition_1.0_Wyroczen_STABLE).
+  - Confirmed the immediate crash is java.lang.IllegalArgumentException: Expecting -minExposure to be equal to maxExposure, was [-24, 12].
+  - Verified the camera HAL reports android.control.aeCompensationRange = [-24, 12] with step 1/6 EV via dumpsys media.camera.
+  - Checked installed GCam version, package, permissions, and the current config at /sdcard/gcam/configs/wyroczen_rn8pro_3.xml.
+  - Reviewed Celso Azevedo's GCam Hub docs for Wyroczen 6.1 configs and folder structure.
+  - Inspected the crash log for secondary issues: libSeeDarkJni.so missing yuv_to_rgb_es.frag shader and MediaCodec error 0xffffffc3 in older tombstones.
+files_modified: []
+notes: >
+  The crash is a port/OS incompatibility: MGC 6.1.021 Wyroczen v1.0 hardcodes an assumption that the camera's AE compensation range is symmetric, but the RN8 Pro HAL on MIUI 12.5.8 reports an asymmetric [-24, 12] range. The config is also in /sdcard/gcam/configs (lowercase) while GCam 6.x expects /sdcard/GCam/Configs/, but the main crash is code-level and likely cannot be fixed by the config alone. Recommended path is to use a newer RN8 Pro port (e.g., Wyroczen MGC_6.1_RN8P_Edition_4.75, NGCam 7.4/8.1, or BSG 8.1). The .env link shared in chat was not used because it is unrelated to the phone.
