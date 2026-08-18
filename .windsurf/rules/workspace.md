@@ -33,6 +33,7 @@ TikTok profile download scheduler. Downloads videos on a schedule with chronolog
 - `just watch` — run continuously every 6 hours
 - `just verify` — test one download per channel
 - `just summary` — list downloaded files
+- `just status` — per-channel completion and pending count
 - `just clean` — remove downloads and state
 - `just clean-slate` — remove downloads and state with confirmation
 

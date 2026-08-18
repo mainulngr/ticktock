@@ -12,6 +12,7 @@ from .downloader import Downloader
 from .resolver import Resolver
 from .scheduler import Scheduler
 from .state import State
+from .status import Status
 from .yt_dlp import YtDlp
 
 
@@ -36,6 +37,12 @@ def _resolve(args: argparse.Namespace, config: AppConfig) -> int:
     channels = load_channels(args.config)
     resolver = Resolver(YtDlp(config))
     resolver.resolve_and_save(channels, Path(args.config))
+    return 0
+
+
+def _status(args: argparse.Namespace, config: AppConfig) -> int:
+    channels = load_channels(args.config)
+    Status(config.state_db_path, channels).show()
     return 0
 
 
@@ -98,6 +105,9 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     resolve_p = sub.add_parser("resolve", help="resolve channel ids and update config")
     resolve_p.set_defaults(func=_resolve)
+
+    status_p = sub.add_parser("status", help="show download status for all channels")
+    status_p.set_defaults(func=_status)
 
     args = parser.parse_args(argv)
     config = load_env_config()

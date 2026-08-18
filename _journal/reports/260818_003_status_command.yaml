@@ -1,0 +1,17 @@
+intent: Add a simple way to see which channels are complete and how many videos remain.
+actions_taken:
+  - Added `ticktock/status.py` to query `data/state.db` and print a per-channel status table.
+  - Added `status` subcommand to `ticktock/cli.py`.
+  - Added `just status` recipe to `justfile`.
+  - Updated `workspace.md` with the new command.
+  - Verified output with `.venv/bin/python -m ticktock status` and `just status`.
+files_modified:
+  - ticktock/status.py
+  - ticktock/cli.py
+  - justfile
+  - .windsurf/rules/workspace.md
+  - _journal/reports/260818_003_status_command.yaml
+notes: |
+  The table shows listed, downloaded, pending, completion percentage,
+  and last-checked time. Pending count comes from the database, so it reflects
+  videos that have been seen by the scheduler but are not yet on disk.

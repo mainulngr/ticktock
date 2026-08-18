@@ -35,3 +35,7 @@ clean-slate: clean
 # show summary of downloaded files
 summary:
     @find downloads -type f | sort | sed 's#^downloads/##'
+
+# show per-channel download status
+status:
+    {{python}} -m ticktock status
