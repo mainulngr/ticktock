@@ -34,7 +34,7 @@ TikTok profile download scheduler. Downloads videos on a schedule with chronolog
 - `just log-trim` — keep only the last 10,000 lines of `data/scheduler.log`
 - `just log-clear` — empty `data/scheduler.log`
 - `just stop` — stop the running scheduler
-- `just restart` — stop and restart the scheduler (also trims `data/scheduler.log` to 10,000 lines)
+- `just restart` — stop and restart the scheduler (trims log and sleeps 2 minutes between cycles)
 - `just verify` — test one download per channel
 - `just summary` — list downloaded files
 - `just status` — per-channel completion and pending count

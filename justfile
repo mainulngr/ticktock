@@ -35,7 +35,7 @@ log-clear:
     @if [ -f data/scheduler.log ]; then > data/scheduler.log; fi
 
 # restart the scheduler (stops any existing one first, trims log)
-restart *args="--max-downloads 20 --interval 600":
+restart *args="--max-downloads 20 --interval 120":
     @just stop
     @just log-trim
     @nohup {{python}} -m ticktock watch {{args}} >> data/scheduler.log 2>&1 & echo $! > data/scheduler.pid

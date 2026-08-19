@@ -1,0 +1,15 @@
+intent: Reduce the rest between scheduler cycles to 2 minutes.
+actions_taken:
+  - Set MIN_INTERVAL_SECONDS=120 in .env.
+  - Changed justfile restart default to --max-downloads 20 --interval 120.
+  - Updated workspace.md to note the 2-minute rest between cycles.
+  - Ran just restart to apply the new interval.
+files_modified:
+  - .env
+  - justfile
+  - .windsurf/rules/workspace.md
+  - _journal/reports/260819_005_reduce_scheduler_interval_to_2m.yaml
+notes: |
+  The scheduler is now running as `ticktock watch --max-downloads 20 --interval 120`.
+  This shortens the idle rest between runs, so the backlog will clear faster.
+  yt-dlp's 30s SLEEP_INTERVAL still paces each individual download; lower it if more speed is needed.
