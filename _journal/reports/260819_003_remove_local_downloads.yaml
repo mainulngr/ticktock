@@ -1,0 +1,7 @@
+intent: Remove the local downloads/ backup after confirming /mega/sata/tocks/ is the new canonical download folder.
+actions_taken:
+  - Confirmed /mega/sata/tocks/ has the same files as the old downloads/ plus the new downloads since the move.
+  - Deleted the local downloads/ directory.
+files_modified:
+  - downloads/ (deleted)
+notes: "Old downloads/ removed. /mega/sata/tocks/ is now the only download directory."
