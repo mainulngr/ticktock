@@ -1,0 +1,27 @@
+intent: Switch the scheduler to oldest-first backfill and move all downloaded videos to /mega/sata/tocks.
+actions_taken:
+  - Stopped the old scheduler and copied all files from downloads/ to /mega/sata/tocks/ (kept downloads/ as a backup until verified).
+  - Updated .env DOWNLOAD_BASE_DIR=/mega/sata/tocks and added LIST_MAX_ITEMS=5000.
+  - Updated state.db file_path values from downloads/ to /mega/sata/tocks/ via SQL.
+  - Added failed/error columns to the videos table and migration logic in state.py.
+  - Refactored Downloader to list the full channel, sort pending videos oldest-first, and skip permanently failed ones.
+  - Removed the 2-day threshold and dateafter window so old backlog is not ignored.
+  - Updated Scheduler to sort by actual pending count from the database.
+  - Resolved TIKTOK_COOKIES_FILE to an absolute path so yt-dlp no longer writes cookies.txt into each channel folder.
+  - Smoke-tested with just run --force --channel dr_bananapu --max-downloads 1; it downloaded the oldest pending video to /mega/sata/tocks/dr_bananapu/.
+  - Changed just restart default to --max-downloads 20 --interval 600 and started the scheduler.
+files_modified:
+  - ticktock/downloader.py
+  - ticktock/scheduler.py
+  - ticktock/state.py
+  - ticktock/status.py
+  - ticktock/config.py
+  - .env
+  - .env.example
+  - justfile
+  - .windsurf/rules/workspace.md
+  - _journal/reports/260819_002_oldest_first_and_move_downloads.yaml
+notes: |
+  downloads/ remains in place as a backup. Once the user confirms /mega/sata/tocks is correct, the old downloads/ folder can be removed.
+  The 30s YT_DLP_SLEEP_INTERVAL is the main remaining bottleneck; lowering it will speed up backfill but increases 429/403 risk.
+  The first full listing of a channel can take several minutes because of the --sleep-requests 1s between items.

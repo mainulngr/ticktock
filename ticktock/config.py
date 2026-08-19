@@ -23,6 +23,7 @@ class AppConfig:
     cookies_from_browser: str | None
     refresh_cookies: bool
     list_cache_ttl: timedelta
+    list_max_items: int | None
     sleep_between_channels: float | None
     sleep_requests: float | None
     sleep_interval: float | None
@@ -58,10 +59,11 @@ def load_env_config() -> AppConfig:
         state_db_path=Path(os.getenv("STATE_DB_PATH", "data/state.db")),
         min_interval=timedelta(seconds=int(os.getenv("MIN_INTERVAL_SECONDS", "3600"))),
         log_level=os.getenv("LOG_LEVEL", "INFO"),
-        cookies_file=Path(c) if (c := os.getenv("TIKTOK_COOKIES_FILE")) else None,
+        cookies_file=Path(c).absolute() if (c := os.getenv("TIKTOK_COOKIES_FILE")) else None,
         cookies_from_browser=os.getenv("TIKTOK_COOKIES_FROM_BROWSER") or None,
         refresh_cookies=_bool_env("TIKTOK_REFRESH_COOKIES"),
         list_cache_ttl=timedelta(seconds=_int_env("LIST_CACHE_TTL", 21600)),
+        list_max_items=_int_env("LIST_MAX_ITEMS", 0) or None,
         sleep_between_channels=_float_env("SLEEP_BETWEEN_CHANNELS"),
         sleep_requests=_float_env("YT_DLP_SLEEP_REQUESTS"),
         sleep_interval=_float_env("YT_DLP_SLEEP_INTERVAL"),

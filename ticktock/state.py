@@ -54,13 +54,25 @@ class State:
                     upload_timestamp INTEGER DEFAULT 0,
                     file_path TEXT,
                     downloaded_at TEXT,
-                    metadata TEXT
+                    metadata TEXT,
+                    failed INTEGER DEFAULT 0,
+                    error TEXT
                 );
 
                 CREATE INDEX IF NOT EXISTS idx_videos_channel
                     ON videos(channel_id);
                 """
             )
+            # SQLite pre-3.24 doesn't ignore repeated ADD COLUMN, so catch errors.
+            for column, ddl in (
+                ("failed", "ALTER TABLE videos ADD COLUMN failed INTEGER DEFAULT 0"),
+                ("error", "ALTER TABLE videos ADD COLUMN error TEXT"),
+            ):
+                try:
+                    conn.execute(ddl)
+                except sqlite3.OperationalError as e:
+                    if "duplicate column" not in str(e).lower():
+                        raise
 
     def upsert_channel(self, channel: Channel) -> None:
         with self._connection() as conn:
@@ -135,7 +147,7 @@ class State:
                 SET latest_upload_timestamp = (
                     SELECT COALESCE(MAX(upload_timestamp), 0)
                     FROM videos
-                    WHERE channel_id = ? AND file_path IS NOT NULL
+                    WHERE channel_id = ? AND file_path IS NOT NULL AND file_path != '' AND (failed = 0 OR failed IS NULL)
                 )
                 WHERE id = ?
                 """,
@@ -145,17 +157,49 @@ class State:
     def is_downloaded(self, video_id: str) -> bool:
         with self._connection() as conn:
             row = conn.execute(
-                "SELECT 1 FROM videos WHERE video_id = ? AND file_path IS NOT NULL", (video_id,)
+                "SELECT 1 FROM videos WHERE video_id = ? AND file_path IS NOT NULL AND file_path != '' AND (failed = 0 OR failed IS NULL)",
+                (video_id,),
+            ).fetchone()
+        return row is not None
+
+    def is_pending(self, video_id: str) -> bool:
+        with self._connection() as conn:
+            row = conn.execute(
+                "SELECT 1 FROM videos WHERE video_id = ? AND (file_path IS NULL OR file_path = '') AND (failed = 0 OR failed IS NULL)",
+                (video_id,),
             ).fetchone()
         return row is not None
 
     def get_downloaded_count(self, channel_id: str) -> int:
         with self._connection() as conn:
             row = conn.execute(
-                "SELECT COUNT(*) FROM videos WHERE channel_id = ? AND file_path IS NOT NULL",
+                "SELECT COUNT(*) FROM videos WHERE channel_id = ? AND file_path IS NOT NULL AND file_path != '' AND (failed = 0 OR failed IS NULL)",
                 (channel_id,),
             ).fetchone()
         return row[0] if row else 0
+
+    def get_pending_count(self, channel_id: str) -> int:
+        with self._connection() as conn:
+            row = conn.execute(
+                "SELECT COUNT(*) FROM videos WHERE channel_id = ? AND (file_path IS NULL OR file_path = '') AND (failed = 0 OR failed IS NULL)",
+                (channel_id,),
+            ).fetchone()
+        return row[0] if row else 0
+
+    def get_pending_videos(self, channel_id: str, limit: int | None = None) -> List[Video]:
+        with self._connection() as conn:
+            sql = (
+                "SELECT * FROM videos WHERE channel_id = ? "
+                "AND (file_path IS NULL OR file_path = '') "
+                "AND (failed = 0 OR failed IS NULL) "
+                "ORDER BY upload_timestamp"
+            )
+            params: list = [channel_id]
+            if limit:
+                sql += " LIMIT ?"
+                params.append(limit)
+            rows = conn.execute(sql, params).fetchall()
+        return self._rows_to_videos(rows)
 
     def get_listed_count(self, channel_id: str) -> int:
         with self._connection() as conn:
@@ -169,15 +213,17 @@ class State:
         with self._connection() as conn:
             conn.execute(
                 """
-                INSERT INTO videos (video_id, channel_id, title, upload_timestamp, file_path, downloaded_at, metadata)
-                VALUES (:video_id, :channel_id, :title, :upload_timestamp, :file_path, :downloaded_at, :metadata)
+                INSERT INTO videos (video_id, channel_id, title, upload_timestamp, file_path, downloaded_at, metadata, failed, error)
+                VALUES (:video_id, :channel_id, :title, :upload_timestamp, :file_path, :downloaded_at, :metadata, :failed, :error)
                 ON CONFLICT(video_id) DO UPDATE SET
                     channel_id = excluded.channel_id,
                     title = COALESCE(NULLIF(excluded.title, ''), videos.title),
                     upload_timestamp = excluded.upload_timestamp,
                     file_path = COALESCE(excluded.file_path, videos.file_path),
                     downloaded_at = COALESCE(excluded.downloaded_at, videos.downloaded_at),
-                    metadata = COALESCE(NULLIF(excluded.metadata, '{}'), videos.metadata)
+                    metadata = COALESCE(NULLIF(excluded.metadata, '{}'), videos.metadata),
+                    failed = COALESCE(videos.failed, excluded.failed),
+                    error = COALESCE(videos.error, excluded.error)
                 """,
                 {
                     "video_id": video.video_id,
@@ -196,6 +242,8 @@ class State:
                         },
                         default=str,
                     ),
+                    "failed": 0,
+                    "error": None,
                 },
             )
 
@@ -204,30 +252,30 @@ class State:
         with self._connection() as conn:
             conn.execute(
                 """
-                INSERT INTO videos (video_id, channel_id, title, upload_timestamp, file_path, downloaded_at, metadata)
-                VALUES (:video_id, '', '', :upload_timestamp, :file_path, :downloaded_at, '{}')
+                INSERT INTO videos (video_id, channel_id, title, upload_timestamp, file_path, downloaded_at, metadata, failed, error)
+                VALUES (:video_id, '', '', :upload_timestamp, :file_path, :downloaded_at, '{}', :failed, :error)
                 ON CONFLICT(video_id) DO UPDATE SET
                     file_path = COALESCE(excluded.file_path, videos.file_path),
                     downloaded_at = COALESCE(excluded.downloaded_at, videos.downloaded_at),
-                    upload_timestamp = MAX(excluded.upload_timestamp, videos.upload_timestamp)
+                    upload_timestamp = MAX(excluded.upload_timestamp, videos.upload_timestamp),
+                    failed = COALESCE(excluded.failed, videos.failed),
+                    error = COALESCE(excluded.error, videos.error)
                 """,
                 {
                     "video_id": video_id,
                     "upload_timestamp": timestamp,
                     "file_path": str(file_path),
                     "downloaded_at": datetime.utcnow().isoformat(),
+                    "failed": 0,
+                    "error": None,
                 },
             )
 
-    def get_videos_for_channel(self, channel_id: str) -> List[Video]:
-        with self._connection() as conn:
-            rows = conn.execute(
-                "SELECT * FROM videos WHERE channel_id = ? ORDER BY upload_timestamp",
-                (channel_id,),
-            ).fetchall()
+    def _rows_to_videos(self, rows: list[sqlite3.Row]) -> List[Video]:
         videos = []
         for r in rows:
             meta = json.loads(r["metadata"] or "{}")
+            file_path = r["file_path"]
             videos.append(
                 Video(
                     video_id=r["video_id"],
@@ -239,10 +287,25 @@ class State:
                     uploader=meta.get("uploader", ""),
                     duration=meta.get("duration"),
                     view_count=meta.get("view_count"),
-                    file_path=Path(r["file_path"]) if r["file_path"] else None,
+                    file_path=Path(file_path) if file_path else None,
                 )
             )
         return videos
+
+    def get_videos_for_channel(self, channel_id: str) -> List[Video]:
+        with self._connection() as conn:
+            rows = conn.execute(
+                "SELECT * FROM videos WHERE channel_id = ? ORDER BY upload_timestamp",
+                (channel_id,),
+            ).fetchall()
+        return self._rows_to_videos(rows)
+
+    def record_failure(self, video_id: str, error: str) -> None:
+        with self._connection() as conn:
+            conn.execute(
+                "UPDATE videos SET failed = 1, error = ? WHERE video_id = ?",
+                (error, video_id),
+            )
 
     def get_latest_upload_timestamp(self, channel_id: str) -> int:
         return self.get_channel_state(channel_id).latest_upload_timestamp

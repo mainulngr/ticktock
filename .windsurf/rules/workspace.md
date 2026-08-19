@@ -20,7 +20,7 @@ TikTok profile download scheduler. Downloads videos on a schedule with chronolog
 - `justfile`: common commands
 - `.env` / `.env.example`: environment and secrets
 - `_journal/`: task inbox and post-execution reports
-- `downloads/`: default video output (gitignored)
+- `DOWNLOAD_BASE_DIR` (e.g. `downloads/` or `/mega/sata/tocks/`): video output (gitignored, configured in `.env`)
 - `data/`: state and cache (gitignored)
 
 ## Key commands
@@ -46,6 +46,9 @@ TikTok profile download scheduler. Downloads videos on a schedule with chronolog
 - Downloads are idempotent by video id; state is stored in `data/state.db` and a `data/yt-dlp-archive.txt`.
 - Output filenames use `YYMMDD_HHMMSS_<video_id>` for chronological sorting.
 - Scheduler respects `min_interval` and per-channel `last_checked_at` to avoid hammering TikTok.
-- `.env` supports `TIKTOK_COOKIES_FILE` / `TIKTOK_COOKIES_FROM_BROWSER`, optional `TIKTOK_REFRESH_COOKIES=true` (re-export from browser before each cycle), `MIN_INTERVAL_SECONDS` (per-channel due interval), `LIST_CACHE_TTL` (cache channel listings), `SLEEP_BETWEEN_CHANNELS` (pause between channels), and yt-dlp sleep options to mitigate 429/403 rate limits.
+- `.env` supports `DOWNLOAD_BASE_DIR`, `TIKTOK_COOKIES_FILE` / `TIKTOK_COOKIES_FROM_BROWSER`, optional `TIKTOK_REFRESH_COOKIES=true` (re-export from browser before each cycle), `MIN_INTERVAL_SECONDS` (per-channel due interval), `LIST_CACHE_TTL` (cache channel listings), `LIST_MAX_ITEMS` (cap channel listings, default no limit), `SLEEP_BETWEEN_CHANNELS` (pause between channels), and yt-dlp sleep options to mitigate 429/403 rate limits.
 - `just refresh-cookies` only keeps TikTok-domain cookies, not the whole browser session.
 - Channel listings are cached under `data/list_cache/` so `max-downloads` runs do not re-list the whole channel every time.
+- Download order is oldest-first: the scheduler backfills the oldest pending video for the most-backlogged channel each run, then moves forward in time.
+- The `videos` table tracks `failed` and `error` so permanently unavailable videos are skipped instead of retried forever.
+- The `TIKTOK_COOKIES_FILE` path is resolved to absolute so yt-dlp does not create stray `cookies.txt` files inside channel output folders.

@@ -64,15 +64,8 @@ class Scheduler:
         return self.state.get_downloaded_count(channel.id) - before
 
     def _pending_count(self, channel: Channel) -> int:
-        """Use the list cache or, if none, the DB to know how many videos are pending.
-        Returns 0 if nothing is known to be remaining."""
-        count = self.downloader.pending_count(channel)
-        if count != -1:
-            return count
-        # No cache yet: fall back to listed - downloaded from the database.
-        listed = self.state.get_listed_count(channel.id)
-        downloaded = self.state.get_downloaded_count(channel.id)
-        return max(0, listed - downloaded)
+        """Return how many videos are still pending for a channel."""
+        return self.state.get_pending_count(channel.id)
 
     def run(
         self,

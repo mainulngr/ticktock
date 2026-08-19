@@ -56,8 +56,8 @@ class Status:
                         c.name,
                         c.last_checked_at,
                         COUNT(v.video_id) AS listed,
-                        COALESCE(SUM(CASE WHEN v.file_path IS NOT NULL AND v.file_path != '' THEN 1 ELSE 0 END), 0) AS downloaded,
-                        COALESCE(SUM(CASE WHEN v.file_path IS NULL OR v.file_path = '' THEN 1 ELSE 0 END), 0) AS pending
+                        COALESCE(SUM(CASE WHEN v.file_path IS NOT NULL AND v.file_path != '' AND (v.failed = 0 OR v.failed IS NULL) THEN 1 ELSE 0 END), 0) AS downloaded,
+                        COALESCE(SUM(CASE WHEN (v.file_path IS NULL OR v.file_path = '') AND (v.failed = 0 OR v.failed IS NULL) THEN 1 ELSE 0 END), 0) AS pending
                     FROM channels c
                     LEFT JOIN videos v ON c.id = v.channel_id
                     GROUP BY c.id

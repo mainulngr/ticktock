@@ -2,7 +2,7 @@
 
 import logging
 import re
-from datetime import datetime, timedelta
+from datetime import datetime
 from pathlib import Path
 from typing import List
 
@@ -37,81 +37,32 @@ class Downloader:
     def _output_dir(self, channel: Channel) -> Path:
         return ensure_dir(channel.output_path(self.config.download_base_dir))
 
-    @staticmethod
-    def _dateafter(latest_timestamp: int) -> str | None:
-        if not latest_timestamp:
-            return None
-        # One-day buffer to avoid missing videos from the same day.
-        buffer = latest_timestamp - 86_400
-        dt = datetime.utcfromtimestamp(buffer)
-        return dt.strftime("%Y%m%d")
-
-    def pending_count(self, channel: Channel) -> int:
-        """Return the number of known pending videos from cache, or -1 if unknown."""
-        if not self.list_cache:
-            return -1
-        latest = self.state.get_latest_upload_timestamp(channel.id)
-        dateafter = self._dateafter(latest)
-        return self.list_cache.get_count(channel.id, dateafter)
-
-    def _threshold(self, channel_id: str) -> int:
-        """Return the oldest timestamp we still consider downloadable."""
-        latest = self.state.get_latest_upload_timestamp(channel_id)
-        if not latest:
-            return 0
-        # 2-day buffer to account for same-day uploads and timezone offsets.
-        return latest - (2 * 86_400)
-
     def list(self, channel: Channel) -> List[Video]:
-        latest = self.state.get_latest_upload_timestamp(channel.id)
-        dateafter = self._dateafter(latest)
-        threshold = self._threshold(channel.id)
-
         if self.list_cache:
-            cached = self.list_cache.get(channel.id, dateafter)
+            cached = self.list_cache.get(channel.id)
             newest_cached = max((v.timestamp for v in cached), default=0) if cached is not None else 0
             latest_server = self.ytdlp.latest_video_timestamp(channel.url())
 
-            if latest_server and latest_server <= newest_cached:
-                logger.info("using cached list for %s (%d videos, dateafter=%s)", channel.id, len(cached), dateafter or "all")
-                return cached
-
-            # Quick-check: if the server has nothing newer than our latest download,
-            # there is nothing to do. Save an empty cache so we skip it next time.
-            if latest_server and latest_server <= latest:
-                logger.info("no new uploads for %s (server ts %s <= latest %s)", channel.id, latest_server, latest)
-                self.list_cache.save(channel.id, dateafter, [])
-                return []
+            if cached is not None:
+                if latest_server and latest_server <= newest_cached:
+                    logger.info("using cached list for %s (%d videos)", channel.id, len(cached))
+                    return cached
+                if latest_server is None:
+                    logger.warning("could not check latest video for %s; using cached list", channel.id)
+                    return cached
 
             logger.info("cache stale for %s (server ts %s > cache ts %s), re-listing", channel.id, latest_server, newest_cached)
 
-        # Paginate listings to avoid long requests and 429s. Start with the
-        # newest 100 and keep expanding until we find undownloaded videos that
-        # are on/after our threshold. Cap at 400 to stay within the cycle budget.
-        for batch in (100, 200, 400):
-            logger.info("listing %s (dateafter=%s, max_items=%d)", channel.username, dateafter or "all", batch)
-            try:
-                videos = self.ytdlp.list_videos(channel.url(), channel.id, dateafter, max_items=batch)
-            except YtDlpError as e:
-                logger.error("list failed for %s (max_items=%d): %s", channel.id, batch, e)
-                return []
+        max_items = self.config.list_max_items
+        logger.info("listing %s (max_items=%s)", channel.id, max_items or "all")
+        try:
+            videos = self.ytdlp.list_videos(channel.url(), channel.id, max_items=max_items)
+        except YtDlpError as e:
+            logger.error("list failed for %s: %s", channel.id, e)
+            return []
 
-            if self.list_cache:
-                self.list_cache.save(channel.id, dateafter, videos)
-
-            if not videos:
-                return []
-
-            # Return as soon as we find a not-yet-downloaded video that is
-            # within the download window (on/after the threshold).
-            if any(
-                not self.state.is_downloaded(v.video_id) and v.timestamp >= threshold for v in videos
-            ):
-                return videos
-
-            # The whole batch is already downloaded or too old; try the next larger batch.
-            if len(videos) < batch:
-                return videos
+        if self.list_cache:
+            self.list_cache.save(channel.id, None, videos)
 
         return videos
 
@@ -141,20 +92,8 @@ class Downloader:
 
         self.state.update_latest_from_downloaded(channel.id)
 
-    def _update_list_cache(self, channel: Channel, videos: List[Video]) -> None:
-        """Remove downloaded videos from the list cache to keep it fresh."""
-        if not self.list_cache:
-            return
-        remaining = [v for v in videos if not self.state.is_downloaded(v.video_id)]
-        if remaining:
-            latest = self.state.get_latest_upload_timestamp(channel.id)
-            dateafter = self._dateafter(latest)
-            self.list_cache.save(channel.id, dateafter, remaining)
-        else:
-            self.list_cache.invalidate(channel.id)
-
     def download(self, channel: Channel, max_downloads: int | None = None) -> List[DownloadResult]:
-        """Download new videos for a single channel."""
+        """Download the oldest pending videos for a single channel."""
         output_dir = self._output_dir(channel)
         archive_path = self._archive_path(channel)
 
@@ -164,47 +103,44 @@ class Downloader:
             logger.info("no videos found for %s", channel.id)
             return []
 
-        # TikTok's channel extractor ignores --dateafter, so the list can include
-        # very old videos. Filter to videos on/after the latest known upload minus
-        # a 2-day buffer to avoid missing same-day uploads and re-downloading the
-        # whole backlog every cycle.
-        threshold = self._threshold(channel.id)
-        if threshold > 0:
-            before = len(videos)
-            videos = [v for v in videos if v.timestamp >= threshold]
-            logger.debug("filtered %s from %d to %d videos above ts %s", channel.id, before, len(videos), threshold)
-
-        # Track known videos from the list, but only advance the latest timestamp
-        # after we confirm the files are actually on disk.
         for video in videos:
             self.state.record_video(video)
 
-        new_videos = [v for v in videos if not self.state.is_downloaded(v.video_id)]
+        pending = sorted(
+            [v for v in videos if self.state.is_pending(v.video_id)],
+            key=lambda v: v.timestamp,
+        )
 
-        if not new_videos:
-            logger.info("no new videos for %s", channel.id)
+        if not pending:
+            logger.info("no pending videos for %s", channel.id)
             self._sync_state_from_disk(channel)
-            self._update_list_cache(channel, videos)
             return []
 
-        logger.info("downloading %d new video(s) for %s", len(new_videos), channel.id)
+        if max_downloads is not None:
+            pending = pending[:max_downloads]
 
-        try:
-            urls = [v.url for v in new_videos if v.url]
-            if urls:
-                self.ytdlp.download(urls, output_dir, archive_path, max_downloads=max_downloads)
-            else:
-                dateafter = self._dateafter(self.state.get_latest_upload_timestamp(channel.id))
-                self.ytdlp.download_channel(channel.url(), output_dir, archive_path, dateafter, max_downloads=max_downloads)
-        except YtDlpError as e:
-            logger.error("download failed for %s: %s", channel.id, e)
-            # Record any files that made it onto disk before the error.
-            self._sync_state_from_disk(channel)
-            self._update_list_cache(channel, videos)
-            return [DownloadResult(v, error=str(e)) for v in new_videos]
+        logger.info("downloading %d pending video(s) for %s", len(pending), channel.id)
 
-        # Re-scan folder to record final file paths and latest upload times.
+        urls = [v.url for v in pending if v.url]
+        error: str | None = None
+        if urls:
+            try:
+                self.ytdlp.download(urls, output_dir, archive_path, max_downloads=None)
+            except YtDlpError as e:
+                error = str(e)
+        else:
+            error = "no video url"
+
         self._sync_state_from_disk(channel)
-        self._update_list_cache(channel, videos)
 
-        return [DownloadResult(v) for v in new_videos]
+        results: List[DownloadResult] = []
+        for video in pending:
+            if self.state.is_downloaded(video.video_id):
+                results.append(DownloadResult(video))
+            else:
+                if not error:
+                    error = "download did not produce file"
+                self.state.record_failure(video.video_id, error)
+                results.append(DownloadResult(video, error=error))
+
+        return results
