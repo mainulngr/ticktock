@@ -1,0 +1,20 @@
+intent: Diagnose why the scheduler appears to be taking forever to finish downloads.
+actions_taken:
+  - Confirmed scheduler process is running (PID 1377445) with `python -m ticktock watch --max-downloads 3 --interval 300`.
+  - Ran `just status` to show per-channel completion and pending counts.
+  - Inspected `.env` throttling values, `justfile` defaults, and the scheduler log tail.
+  - Examined `downloader.py` threshold logic and `scheduler.py` pending-count sorting.
+  - Queried SQLite to cross-check listed, downloaded, and pending counts and timestamps.
+files_modified:
+  - _journal/reports/260819_001_scheduler_health_check.yaml
+notes: |
+  The scheduler is healthy but is not designed to clear the existing backlog:
+  - `just restart` currently starts `watch --max-downloads 3 --interval 300`, so it can download at most 3 videos every 5 minutes.
+  - `downloader.py` uses a 2-day threshold (`latest_upload - 2 days`) and `dateafter = latest - 1 day`.
+  - `latest_upload_timestamp` is the newest *downloaded* video, so the window is always the most recent 2 days.
+  - The 3455 pending videos in `status` are mostly old (2020-2024) and sit outside that window, so the scheduler treats the channel as "caught up" and logs "no new uploads".
+  - A few specific videos fail repeatedly with `Unable to extract universal data for rehydration` (englishfuns 7675459322435915038, dr_healthcare1 7675466571485154582). Those are yt-dlp/TikTok extraction issues, not scheduler bugs.
+  Options to finish faster:
+  1. Keep the conservative rate and only catch new uploads; the current speed is safe but the backlog will remain.
+  2. Add a backfill command/mode that targets the oldest pending videos in the DB and downloads them in batches.
+  3. Raise `max-downloads`, reduce `--interval`, and/or loosen yt-dlp sleeps to speed up new-content throughput (higher 429/403 risk).
