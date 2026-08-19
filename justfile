@@ -2,6 +2,7 @@ set dotenv-load := false
 
 venv := ".venv/bin"
 python := venv / "python"
+log_max_lines := "10000"
 
 # install dependencies into a local venv
 setup:
@@ -25,9 +26,18 @@ stop:
     @if [ -f data/scheduler.pid ]; then PID=$(cat data/scheduler.pid); kill $PID 2>/dev/null || true; kill -- -$PID 2>/dev/null || true; rm -f data/scheduler.pid; fi
     @ps aux | awk '/[t]icktock watch/ {print $2}' | while read pid; do kill "$pid" 2>/dev/null || true; done
 
-# restart the scheduler (stops any existing one first)
+# trim scheduler log to the last N lines
+log-trim:
+    @if [ -f data/scheduler.log ]; then tail -n {{log_max_lines}} data/scheduler.log > data/scheduler.log.tmp && mv data/scheduler.log.tmp data/scheduler.log; fi
+
+# clear the scheduler log
+log-clear:
+    @if [ -f data/scheduler.log ]; then > data/scheduler.log; fi
+
+# restart the scheduler (stops any existing one first, trims log)
 restart *args="--max-downloads 20 --interval 600":
     @just stop
+    @just log-trim
     @nohup {{python}} -m ticktock watch {{args}} >> data/scheduler.log 2>&1 & echo $! > data/scheduler.pid
 
 # test one download per channel
@@ -44,7 +54,7 @@ clean-slate: clean
 
 # show summary of downloaded files
 summary:
-    @find downloads -type f | sort | sed 's#^downloads/##'
+    @DIR=$({{python}} -c "from ticktock.config import load_env_config; print(load_env_config().download_base_dir)") && find "$DIR" -type f | sort | sed "s#^$DIR/##"
 
 # show per-channel download status
 status:

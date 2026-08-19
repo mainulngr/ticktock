@@ -1,0 +1,15 @@
+intent: Add a line limit for scheduler.log and a just recipe to clear it.
+actions_taken:
+  - Added log_max_lines justfile variable (default 10000).
+  - Added just log-trim recipe to truncate data/scheduler.log to the last N lines.
+  - Added just log-clear recipe to empty data/scheduler.log.
+  - Updated just restart to call log-trim before starting the scheduler.
+  - Fixed just summary to list files from the configured DOWNLOAD_BASE_DIR instead of hardcoded downloads/.
+  - Updated workspace.md with the new just recipes.
+files_modified:
+  - justfile
+  - .windsurf/rules/workspace.md
+  - _journal/reports/260819_004_log_rotation_and_clear_recipe.yaml
+notes: |
+  log-trim is intended to run only when the scheduler is stopped; restart calls it automatically.
+  log-clear can be used while the scheduler is running because the nohup append handle will continue writing to the truncated file.
