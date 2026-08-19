@@ -1,9 +1,7 @@
 """Scheduling logic to avoid hammering TikTok."""
 
 import logging
-import time
 from datetime import datetime
-from pathlib import Path
 from typing import List
 
 from .config import AppConfig
@@ -29,6 +27,7 @@ class Scheduler:
         self.state = state
         self.downloader = downloader
         self.resolver = resolver
+        self._focus_channel_id: str | None = None
 
     def is_due(self, channel: Channel, now: datetime | None = None) -> bool:
         now = now or datetime.utcnow()
@@ -67,6 +66,20 @@ class Scheduler:
         """Return how many videos are still pending for a channel."""
         return self.state.get_pending_count(channel.id)
 
+    def _focus_channel(self, channels: List[Channel]) -> Channel | None:
+        if not self._focus_channel_id:
+            return None
+        for channel in channels:
+            if channel.id == self._focus_channel_id and self._pending_count(channel) > 0:
+                return channel
+        return None
+
+    def _pick_next_focus(self, channels: List[Channel]) -> Channel | None:
+        for channel in sorted(channels, key=self._pending_count, reverse=True):
+            if self._pending_count(channel) > 0:
+                return channel
+        return None
+
     def run(
         self,
         channels: List[Channel],
@@ -75,31 +88,22 @@ class Scheduler:
         max_downloads: int | None = None,
     ) -> None:
         now = datetime.utcnow()
-        remaining = max_downloads
 
         if channel_ids:
             channels = [c for c in channels if c.id in channel_ids]
 
-        # Process channels with the most pending downloads first, so channels
-        # with 0 known remaining are checked last (or skipped if budget runs out).
-        channels = sorted(channels, key=self._pending_count, reverse=True)
+        focus = self._focus_channel(channels)
+        if focus is None:
+            focus = self._pick_next_focus(channels)
+            self._focus_channel_id = focus.id if focus else None
 
-        for index, channel in enumerate(channels):
-            if force or self.is_due(channel, now):
-                downloaded = self.run_channel(channel, now, max_downloads=remaining)
-                if remaining is not None:
-                    remaining -= downloaded
-                    if remaining <= 0:
-                        logger.info("global download budget exhausted")
-                        break
-            else:
-                logger.info("skipping %s (checked recently)", channel.id)
+        if focus is None:
+            logger.info("no channels with pending downloads")
+            return
 
-            # Pause between channels to avoid request bursts.
-            if (
-                self.config.sleep_between_channels
-                and index < len(channels) - 1
-                and (remaining is None or remaining > 0)
-            ):
-                logger.info("sleeping %.1f seconds before next channel", self.config.sleep_between_channels)
-                time.sleep(self.config.sleep_between_channels)
+        if force or self.is_due(focus, now):
+            self.run_channel(focus, now, max_downloads=max_downloads)
+            if self._pending_count(focus) == 0:
+                self._focus_channel_id = None
+        else:
+            logger.info("focus channel %s checked recently; will retry later", focus.id)

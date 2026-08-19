@@ -1,0 +1,15 @@
+intent: Make the scheduler stick to one channel until its pending count is zero.
+actions_taken:
+  - Refactored Scheduler to maintain a focus channel across watch cycles.
+  - Scheduler now picks the channel with the most pending videos and keeps downloading from it every cycle until pending reaches zero, then moves to the next.
+  - Stopped the scheduler, reset failed flags for videos that were interrupted by an orphan yt-dlp process, and restarted.
+  - Updated just stop to also kill orphaned yt-dlp child processes (pkill -x yt-dlp).
+  - Updated workspace.md with the sticky scheduler behavior and just stop change.
+files_modified:
+  - ticktock/scheduler.py
+  - ticktock/justfile
+  - .windsurf/rules/workspace.md
+  - _journal/reports/260819_006_sticky_one_channel_scheduler.yaml
+notes: |
+  The old log snippet showed the scheduler splitting a 20-video budget across multiple channels and sleeping 30 seconds between them; this was the pre-sticky behavior.
+  It is now running `tjohnhutcheson` repeatedly until that channel is done.

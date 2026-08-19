@@ -25,6 +25,7 @@ watch *args="":
 stop:
     @if [ -f data/scheduler.pid ]; then PID=$(cat data/scheduler.pid); kill $PID 2>/dev/null || true; kill -- -$PID 2>/dev/null || true; rm -f data/scheduler.pid; fi
     @ps aux | awk '/[t]icktock watch/ {print $2}' | while read pid; do kill "$pid" 2>/dev/null || true; done
+    @pkill -x yt-dlp 2>/dev/null || true
 
 # trim scheduler log to the last N lines
 log-trim:

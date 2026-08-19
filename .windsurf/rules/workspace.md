@@ -33,7 +33,7 @@ TikTok profile download scheduler. Downloads videos on a schedule with chronolog
 - `just watch` — run continuously every `MIN_INTERVAL_SECONDS`
 - `just log-trim` — keep only the last 10,000 lines of `data/scheduler.log`
 - `just log-clear` — empty `data/scheduler.log`
-- `just stop` — stop the running scheduler
+- `just stop` — stop the running scheduler and any orphaned yt-dlp child processes
 - `just restart` — stop and restart the scheduler (trims log and sleeps 2 minutes between cycles)
 - `just verify` — test one download per channel
 - `just summary` — list downloaded files
@@ -54,3 +54,4 @@ TikTok profile download scheduler. Downloads videos on a schedule with chronolog
 - Download order is oldest-first: the scheduler backfills the oldest pending video for the most-backlogged channel each run, then moves forward in time.
 - The `videos` table tracks `failed` and `error` so permanently unavailable videos are skipped instead of retried forever.
 - The `TIKTOK_COOKIES_FILE` path is resolved to absolute so yt-dlp does not create stray `cookies.txt` files inside channel output folders.
+- The scheduler is sticky: it picks the channel with the most pending videos and keeps downloading from that same channel across cycles until its pending count reaches zero, then moves to the next most-backlogged channel.
