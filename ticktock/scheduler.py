@@ -102,8 +102,8 @@ class Scheduler:
             return
 
         if force or self.is_due(focus, now):
-            self.run_channel(focus, now, max_downloads=max_downloads)
-            if self._pending_count(focus) == 0:
+            downloaded = self.run_channel(focus, now, max_downloads=max_downloads)
+            if self._pending_count(focus) == 0 or downloaded == 0:
                 self._focus_channel_id = None
         else:
             logger.info("focus channel %s checked recently; will retry later", focus.id)
