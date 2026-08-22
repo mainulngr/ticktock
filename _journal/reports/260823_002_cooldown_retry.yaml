@@ -1,0 +1,18 @@
+intent: "Add cooldown-based retry for failed downloads so gaps are not permanently skipped."
+actions_taken:
+  - Added `retries` and `failed_at` columns to the `videos` table with idempotent migration.
+  - Updated `record_failure()` to increment retries and only mark `failed=1` after `MAX_FAILED_RETRIES` attempts.
+  - Updated `is_pending()` / `get_pending_count()` / `get_pending_videos()` to include retry-eligible videos once `failed_at` is older than the cooldown.
+  - Updated `set_downloaded()` and `record_video()` to preserve and clear retry state.
+  - Updated `Status` to show actionable `pending` and cooldown/permanent `failed`.
+  - Added `.env` settings `FAILED_RETRY_COOLDOWN_SECONDS` (default 21600) and `MAX_FAILED_RETRIES` (default 3) with `.env.example` docs.
+  - Migrated legacy `failed=1` rows to `retries=1` and `failed_at = cooldown` so they are eligible for retry on the next run.
+files_modified:
+  - ticktock/state.py
+  - ticktock/status.py
+  - ticktock/config.py
+  - ticktock/cli.py
+  - .env.example
+  - .windsurf/rules/workspace.md
+  - .env
+notes: "Code is committed. The running scheduler process still uses the old module until it is restarted. `just restart` will load the new code, migrate `data/state.db`, and start retrying the 1954 failed videos. With `max-downloads 20` and 30s sleep this is throttled, not a burst."
