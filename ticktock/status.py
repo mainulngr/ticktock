@@ -2,7 +2,7 @@
 
 import sqlite3
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import List, Optional
 
@@ -40,31 +40,75 @@ class ChannelStatus:
 class Status:
     """Print a human-readable per-channel download status table."""
 
-    def __init__(self, db_path: Path, channels: List[Channel]) -> None:
+    def __init__(
+        self,
+        db_path: Path,
+        channels: List[Channel],
+        failed_retry_cooldown: timedelta = timedelta(hours=6),
+    ) -> None:
         self.db_path = db_path
         self.channels = channels
+        self.failed_retry_cooldown = failed_retry_cooldown
+
+    def _cutoff(self) -> str:
+        return (datetime.now(timezone.utc) - self.failed_retry_cooldown).replace(tzinfo=None).isoformat()
+
+    def _has_retry_columns(self, conn: sqlite3.Connection) -> bool:
+        info = conn.execute("PRAGMA table_info(videos)").fetchall()
+        names = {row["name"] for row in info}
+        return "retries" in names and "failed_at" in names
 
     def _rows(self) -> List[ChannelStatus]:
         by_id: dict[str, ChannelStatus] = {}
         if self.db_path.exists():
             with sqlite3.connect(self.db_path) as conn:
                 conn.row_factory = sqlite3.Row
-                rows = conn.execute(
-                    """
-                    SELECT
-                        c.id,
-                        c.username,
-                        c.name,
-                        c.last_checked_at,
-                        COUNT(v.video_id) AS listed,
-                        COALESCE(SUM(CASE WHEN v.file_path IS NOT NULL AND v.file_path != '' AND (v.failed = 0 OR v.failed IS NULL) THEN 1 ELSE 0 END), 0) AS downloaded,
-                        COALESCE(SUM(CASE WHEN (v.file_path IS NULL OR v.file_path = '') AND (v.failed = 0 OR v.failed IS NULL) THEN 1 ELSE 0 END), 0) AS pending,
-                        COALESCE(SUM(CASE WHEN v.failed = 1 THEN 1 ELSE 0 END), 0) AS failed
-                    FROM channels c
-                    LEFT JOIN videos v ON c.id = v.channel_id
-                    GROUP BY c.id
-                    """
-                ).fetchall()
+                has_retry = self._has_retry_columns(conn)
+                if has_retry:
+                    cutoff = self._cutoff()
+                    rows = conn.execute(
+                        f"""
+                        SELECT
+                            c.id,
+                            c.username,
+                            c.name,
+                            c.last_checked_at,
+                            COUNT(v.video_id) AS listed,
+                            COALESCE(SUM(CASE WHEN v.file_path IS NOT NULL AND v.file_path != '' AND (v.failed = 0 OR v.failed IS NULL) THEN 1 ELSE 0 END), 0) AS downloaded,
+                            COALESCE(SUM(CASE
+                                WHEN (v.file_path IS NULL OR v.file_path = '')
+                                     AND (v.failed = 0 OR v.failed IS NULL)
+                                     AND (v.retries = 0 OR v.retries IS NULL OR v.failed_at IS NULL OR v.failed_at <= '{cutoff}')
+                                THEN 1 ELSE 0 END), 0) AS pending,
+                            COALESCE(SUM(CASE
+                                WHEN (v.file_path IS NULL OR v.file_path = '')
+                                     AND (
+                                         v.failed = 1
+                                         OR (v.retries > 0 AND v.failed_at IS NOT NULL AND v.failed_at > '{cutoff}')
+                                     )
+                                THEN 1 ELSE 0 END), 0) AS failed
+                        FROM channels c
+                        LEFT JOIN videos v ON c.id = v.channel_id
+                        GROUP BY c.id
+                        """
+                    ).fetchall()
+                else:
+                    rows = conn.execute(
+                        """
+                        SELECT
+                            c.id,
+                            c.username,
+                            c.name,
+                            c.last_checked_at,
+                            COUNT(v.video_id) AS listed,
+                            COALESCE(SUM(CASE WHEN v.file_path IS NOT NULL AND v.file_path != '' AND (v.failed = 0 OR v.failed IS NULL) THEN 1 ELSE 0 END), 0) AS downloaded,
+                            COALESCE(SUM(CASE WHEN (v.file_path IS NULL OR v.file_path = '') AND (v.failed = 0 OR v.failed IS NULL) THEN 1 ELSE 0 END), 0) AS pending,
+                            COALESCE(SUM(CASE WHEN v.failed = 1 THEN 1 ELSE 0 END), 0) AS failed
+                        FROM channels c
+                        LEFT JOIN videos v ON c.id = v.channel_id
+                        GROUP BY c.id
+                        """
+                    ).fetchall()
             for r in rows:
                 by_id[r["id"]] = ChannelStatus(
                     id=r["id"],

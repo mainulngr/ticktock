@@ -48,11 +48,11 @@ TikTok profile download scheduler. Downloads videos on a schedule with chronolog
 - Downloads are idempotent by video id; state is stored in `data/state.db` and a `data/yt-dlp-archive.txt`.
 - Output filenames use `YYMMDD_HHMMSS_<video_id>` for chronological sorting.
 - Scheduler respects `min_interval` and per-channel `last_checked_at` to avoid hammering TikTok.
-- `.env` supports `DOWNLOAD_BASE_DIR`, `TIKTOK_COOKIES_FILE` / `TIKTOK_COOKIES_FROM_BROWSER`, optional `TIKTOK_REFRESH_COOKIES=true` (re-export from browser before each cycle), `MIN_INTERVAL_SECONDS` (per-channel due interval), `LIST_CACHE_TTL` (cache channel listings), `LIST_MAX_ITEMS` (cap channel listings, default no limit), `SLEEP_BETWEEN_CHANNELS` (pause between channels), and yt-dlp sleep options to mitigate 429/403 rate limits.
+- `.env` supports `DOWNLOAD_BASE_DIR`, `TIKTOK_COOKIES_FILE` / `TIKTOK_COOKIES_FROM_BROWSER`, optional `TIKTOK_REFRESH_COOKIES=true` (re-export from browser before each cycle), `MIN_INTERVAL_SECONDS` (per-channel due interval), `LIST_CACHE_TTL` (cache channel listings), `LIST_MAX_ITEMS` (cap channel listings, default no limit), `SLEEP_BETWEEN_CHANNELS` (pause between channels), yt-dlp sleep options, `FAILED_RETRY_COOLDOWN_SECONDS` (default 21600 = 6h), and `MAX_FAILED_RETRIES` (default 3) for cooldown-based failed download retry.
 - `just refresh-cookies` only keeps TikTok-domain cookies, not the whole browser session.
 - Channel listings are cached under `data/list_cache/` so `max-downloads` runs do not re-list the whole channel every time.
 - Download order is oldest-first: the scheduler backfills the oldest pending video for the most-backlogged channel each run, then moves forward in time.
-- The `videos` table tracks `failed` and `error` so permanently unavailable videos are skipped instead of retried forever.
+- The `videos` table tracks `failed`, `retries`, and `failed_at` to retry transient failures with a cooldown, and mark permanently unavailable videos as failed after `MAX_FAILED_RETRIES`.
 - `just status` shows `listed`, `done`, `pending`, and `failed`; percent is `done / listed`, and a channel with only failed entries is shown as `blocked`, not `done`.
 - The `TIKTOK_COOKIES_FILE` path is resolved to absolute so yt-dlp does not create stray `cookies.txt` files inside channel output folders.
 - The scheduler is sticky: it picks the channel with the most pending videos and keeps downloading from that same channel across cycles until its pending count reaches zero, then moves to the next most-backlogged channel.

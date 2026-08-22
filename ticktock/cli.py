@@ -27,7 +27,11 @@ def _setup_logging(level: str) -> None:
 
 def _build_scheduler(config: AppConfig) -> Scheduler:
     ensure_paths(config)
-    state = State(config.state_db_path)
+    state = State(
+        config.state_db_path,
+        failed_retry_cooldown=config.failed_retry_cooldown,
+        max_failed_retries=config.max_failed_retries,
+    )
     ytdlp = YtDlp(config)
     downloader = Downloader(config, state, ytdlp)
     resolver = Resolver(ytdlp)
@@ -53,7 +57,7 @@ def _refresh_cookies(args: argparse.Namespace, config: AppConfig) -> int:
 
 def _status(args: argparse.Namespace, config: AppConfig) -> int:
     channels = load_channels(args.config)
-    Status(config.state_db_path, channels).show()
+    Status(config.state_db_path, channels, failed_retry_cooldown=config.failed_retry_cooldown).show()
     return 0
 
 

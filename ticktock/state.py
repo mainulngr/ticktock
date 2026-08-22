@@ -3,7 +3,7 @@
 import json
 import sqlite3
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import List, Optional
 
@@ -24,8 +24,15 @@ class ChannelState:
 class State:
     """SQLite-backed state store."""
 
-    def __init__(self, db_path: Path) -> None:
+    def __init__(
+        self,
+        db_path: Path,
+        failed_retry_cooldown: timedelta = timedelta(hours=6),
+        max_failed_retries: int = 3,
+    ) -> None:
         self.db_path = db_path
+        self.failed_retry_cooldown = failed_retry_cooldown
+        self.max_failed_retries = max(0, max_failed_retries)
         ensure_dir(self.db_path.parent)
         self._init_db()
 
@@ -56,7 +63,9 @@ class State:
                     downloaded_at TEXT,
                     metadata TEXT,
                     failed INTEGER DEFAULT 0,
-                    error TEXT
+                    error TEXT,
+                    retries INTEGER DEFAULT 0,
+                    failed_at TEXT
                 );
 
                 CREATE INDEX IF NOT EXISTS idx_videos_channel
@@ -67,12 +76,29 @@ class State:
             for column, ddl in (
                 ("failed", "ALTER TABLE videos ADD COLUMN failed INTEGER DEFAULT 0"),
                 ("error", "ALTER TABLE videos ADD COLUMN error TEXT"),
+                ("retries", "ALTER TABLE videos ADD COLUMN retries INTEGER DEFAULT 0"),
+                ("failed_at", "ALTER TABLE videos ADD COLUMN failed_at TEXT"),
             ):
                 try:
                     conn.execute(ddl)
                 except sqlite3.OperationalError as e:
                     if "duplicate column" not in str(e).lower():
                         raise
+
+            # Legacy (pre-retry) failed rows have failed=1 and no failed_at timestamp.
+            # Old-code failures after the columns exist also have failed_at IS NULL.
+            # Treat each as one past failure and put it on cooldown instead of permanent.
+            cutoff = datetime.now(timezone.utc) - self.failed_retry_cooldown
+            conn.execute(
+                """
+                UPDATE videos
+                SET retries = 1,
+                    failed_at = ?,
+                    failed = CASE WHEN 1 >= ? THEN 1 ELSE 0 END
+                WHERE failed = 1 AND failed_at IS NULL
+                """,
+                (cutoff.replace(tzinfo=None).isoformat(), self.max_failed_retries),
+            )
 
     def upsert_channel(self, channel: Channel) -> None:
         with self._connection() as conn:
@@ -162,11 +188,22 @@ class State:
             ).fetchone()
         return row is not None
 
+    def _retry_cutoff(self) -> str:
+        """Return the ISO timestamp before which a retry is allowed."""
+        cutoff = datetime.now(timezone.utc) - self.failed_retry_cooldown
+        return cutoff.replace(tzinfo=None).isoformat()
+
     def is_pending(self, video_id: str) -> bool:
         with self._connection() as conn:
             row = conn.execute(
-                "SELECT 1 FROM videos WHERE video_id = ? AND (file_path IS NULL OR file_path = '') AND (failed = 0 OR failed IS NULL)",
-                (video_id,),
+                """
+                SELECT 1 FROM videos
+                WHERE video_id = ?
+                AND (file_path IS NULL OR file_path = '')
+                AND (failed = 0 OR failed IS NULL)
+                AND (retries = 0 OR retries IS NULL OR failed_at IS NULL OR failed_at <= ?)
+                """,
+                (video_id, self._retry_cutoff()),
             ).fetchone()
         return row is not None
 
@@ -181,8 +218,14 @@ class State:
     def get_pending_count(self, channel_id: str) -> int:
         with self._connection() as conn:
             row = conn.execute(
-                "SELECT COUNT(*) FROM videos WHERE channel_id = ? AND (file_path IS NULL OR file_path = '') AND (failed = 0 OR failed IS NULL)",
-                (channel_id,),
+                """
+                SELECT COUNT(*) FROM videos
+                WHERE channel_id = ?
+                AND (file_path IS NULL OR file_path = '')
+                AND (failed = 0 OR failed IS NULL)
+                AND (retries = 0 OR retries IS NULL OR failed_at IS NULL OR failed_at <= ?)
+                """,
+                (channel_id, self._retry_cutoff()),
             ).fetchone()
         return row[0] if row else 0
 
@@ -192,9 +235,10 @@ class State:
                 "SELECT * FROM videos WHERE channel_id = ? "
                 "AND (file_path IS NULL OR file_path = '') "
                 "AND (failed = 0 OR failed IS NULL) "
+                "AND (retries = 0 OR retries IS NULL OR failed_at IS NULL OR failed_at <= ?) "
                 "ORDER BY upload_timestamp"
             )
-            params: list = [channel_id]
+            params: list = [channel_id, self._retry_cutoff()]
             if limit:
                 sql += " LIMIT ?"
                 params.append(limit)
@@ -213,8 +257,8 @@ class State:
         with self._connection() as conn:
             conn.execute(
                 """
-                INSERT INTO videos (video_id, channel_id, title, upload_timestamp, file_path, downloaded_at, metadata, failed, error)
-                VALUES (:video_id, :channel_id, :title, :upload_timestamp, :file_path, :downloaded_at, :metadata, :failed, :error)
+                INSERT INTO videos (video_id, channel_id, title, upload_timestamp, file_path, downloaded_at, metadata, failed, error, retries, failed_at)
+                VALUES (:video_id, :channel_id, :title, :upload_timestamp, :file_path, :downloaded_at, :metadata, :failed, :error, :retries, :failed_at)
                 ON CONFLICT(video_id) DO UPDATE SET
                     channel_id = excluded.channel_id,
                     title = COALESCE(NULLIF(excluded.title, ''), videos.title),
@@ -223,7 +267,9 @@ class State:
                     downloaded_at = COALESCE(excluded.downloaded_at, videos.downloaded_at),
                     metadata = COALESCE(NULLIF(excluded.metadata, '{}'), videos.metadata),
                     failed = COALESCE(videos.failed, excluded.failed),
-                    error = COALESCE(videos.error, excluded.error)
+                    error = COALESCE(videos.error, excluded.error),
+                    retries = COALESCE(videos.retries, excluded.retries),
+                    failed_at = COALESCE(videos.failed_at, excluded.failed_at)
                 """,
                 {
                     "video_id": video.video_id,
@@ -244,22 +290,26 @@ class State:
                     ),
                     "failed": 0,
                     "error": None,
+                    "retries": 0,
+                    "failed_at": None,
                 },
             )
 
     def set_downloaded(self, video_id: str, file_path: Path, timestamp: int = 0) -> None:
-        """Mark a video as downloaded without overwriting title/metadata."""
+        """Mark a video as downloaded, clearing any retry/failure state."""
         with self._connection() as conn:
             conn.execute(
                 """
-                INSERT INTO videos (video_id, channel_id, title, upload_timestamp, file_path, downloaded_at, metadata, failed, error)
-                VALUES (:video_id, '', '', :upload_timestamp, :file_path, :downloaded_at, '{}', :failed, :error)
+                INSERT INTO videos (video_id, channel_id, title, upload_timestamp, file_path, downloaded_at, metadata, failed, error, retries, failed_at)
+                VALUES (:video_id, '', '', :upload_timestamp, :file_path, :downloaded_at, '{}', :failed, :error, :retries, :failed_at)
                 ON CONFLICT(video_id) DO UPDATE SET
                     file_path = COALESCE(excluded.file_path, videos.file_path),
                     downloaded_at = COALESCE(excluded.downloaded_at, videos.downloaded_at),
                     upload_timestamp = MAX(excluded.upload_timestamp, videos.upload_timestamp),
                     failed = COALESCE(excluded.failed, videos.failed),
-                    error = COALESCE(excluded.error, videos.error)
+                    error = COALESCE(excluded.error, videos.error),
+                    retries = COALESCE(excluded.retries, videos.retries),
+                    failed_at = COALESCE(excluded.failed_at, videos.failed_at)
                 """,
                 {
                     "video_id": video_id,
@@ -268,6 +318,8 @@ class State:
                     "downloaded_at": datetime.utcnow().isoformat(),
                     "failed": 0,
                     "error": None,
+                    "retries": 0,
+                    "failed_at": None,
                 },
             )
 
@@ -300,11 +352,19 @@ class State:
             ).fetchall()
         return self._rows_to_videos(rows)
 
-    def record_failure(self, video_id: str, error: str) -> None:
+    def record_failure(self, video_id: str, error: str, now: Optional[datetime] = None) -> None:
+        """Record a failed attempt. Retry up to max_failed_retries with a cooldown."""
+        now = now or datetime.utcnow()
         with self._connection() as conn:
+            row = conn.execute(
+                "SELECT retries, failed FROM videos WHERE video_id = ?",
+                (video_id,),
+            ).fetchone()
+            retries = (row["retries"] or 0) + 1 if row else 1
+            failed = 1 if retries >= self.max_failed_retries else 0
             conn.execute(
-                "UPDATE videos SET failed = 1, error = ? WHERE video_id = ?",
-                (error, video_id),
+                "UPDATE videos SET failed = ?, retries = ?, failed_at = ?, error = ? WHERE video_id = ?",
+                (failed, retries, now.isoformat(), error, video_id),
             )
 
     def get_latest_upload_timestamp(self, channel_id: str) -> int:
