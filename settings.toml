@@ -128,3 +128,10 @@ username = "babyenglishdaily.mia"
 name = "BabyenglishdailywithMia"
 sec_uid = "MS4wLjABAAAA4MMFhtJuh5fr37uTW5l5zEbkEZG17LDLyGoS5zdkmUa48Ng00F3QYJd4H6yes_y8"
 output_dir = "babyenglishdaily_mia"
+
+[[channel]]
+id = "stickcrux"
+username = "stickcrux"
+name = "Stick Crux"
+sec_uid = "MS4wLjABAAAAi-ZWPyTix2G0s0MoSxgf8IiF-yrrLPQXOyRL7nr8US5XTOZlTuaU0SoaC6PZEFRY"
+output_dir = "stickcrux"
