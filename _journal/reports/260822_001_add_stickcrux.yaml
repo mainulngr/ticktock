@@ -1,0 +1,10 @@
+intent: Add the stickcrux TikTok profile to the download list.
+actions_taken:
+  - Appended a new channel stub for stickcrux to settings.toml.
+  - Resolved stickcrux via yt-dlp (name: "Stick Crux", sec_uid: "MS4wLjABAAAAi-ZWPyTix2G0s0MoSxgf8IiF-yrrLPQXOyRL7nr8US5XTOZlTuaU0SoaC6PZEFRY").
+  - Verified the channel appears in `just status` as "not checked".
+  - Committed the change to settings.toml.
+files_modified:
+  - settings.toml
+  - _journal/reports/260822_001_add_stickcrux.yaml
+notes: "The currently running `ticktock watch` process was started before this change, so it will not pick up stickcrux until it is restarted."
