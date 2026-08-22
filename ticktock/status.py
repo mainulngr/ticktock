@@ -18,22 +18,23 @@ class ChannelStatus:
     listed: int
     downloaded: int
     pending: int
+    failed: int
 
     @property
     def percent(self) -> float:
         if not self.listed:
             return 0.0
-        if not self.pending:
-            return 100.0
         return (self.downloaded / self.listed) * 100
 
     @property
     def status(self) -> str:
         if not self.listed:
             return "not checked"
-        if not self.pending:
-            return "done"
-        return "in progress"
+        if self.pending:
+            return "in progress"
+        if self.failed:
+            return "blocked"
+        return "done"
 
 
 class Status:
@@ -57,7 +58,8 @@ class Status:
                         c.last_checked_at,
                         COUNT(v.video_id) AS listed,
                         COALESCE(SUM(CASE WHEN v.file_path IS NOT NULL AND v.file_path != '' AND (v.failed = 0 OR v.failed IS NULL) THEN 1 ELSE 0 END), 0) AS downloaded,
-                        COALESCE(SUM(CASE WHEN (v.file_path IS NULL OR v.file_path = '') AND (v.failed = 0 OR v.failed IS NULL) THEN 1 ELSE 0 END), 0) AS pending
+                        COALESCE(SUM(CASE WHEN (v.file_path IS NULL OR v.file_path = '') AND (v.failed = 0 OR v.failed IS NULL) THEN 1 ELSE 0 END), 0) AS pending,
+                        COALESCE(SUM(CASE WHEN v.failed = 1 THEN 1 ELSE 0 END), 0) AS failed
                     FROM channels c
                     LEFT JOIN videos v ON c.id = v.channel_id
                     GROUP BY c.id
@@ -72,6 +74,7 @@ class Status:
                     listed=r["listed"],
                     downloaded=r["downloaded"],
                     pending=r["pending"],
+                    failed=r["failed"],
                 )
 
         statuses: List[ChannelStatus] = []
@@ -88,6 +91,7 @@ class Status:
                         listed=0,
                         downloaded=0,
                         pending=0,
+                        failed=0,
                     )
                 )
         return statuses
@@ -101,28 +105,29 @@ class Status:
 
     def show(self) -> None:
         rows = self._rows()
-        # Completed channels at the bottom; largest remaining at the top.
-        rows.sort(key=lambda r: (r.pending == 0, -r.pending, -r.listed))
+        # In-progress at the top, then blocked, then done.
+        rows.sort(key=lambda r: (-r.pending, -r.failed, -r.listed))
 
         if not rows:
             print("No channels configured.")
             return
 
         name_width = max(len(r.id) for r in rows) + 2
-        line_width = name_width + 54
+        line_width = name_width + 64
 
-        print(f"{'channel':<{name_width}} {'status':<12} {'listed':>7} {'done':>7} {'pending':>8} {'pct':>6} {'last checked':>16}")
+        print(f"{'channel':<{name_width}} {'status':<12} {'listed':>7} {'done':>7} {'pending':>8} {'failed':>8} {'pct':>6} {'last checked':>16}")
         print("-" * line_width)
         for r in rows:
             print(
-                f"{r.id:<{name_width}} {r.status:<12} {r.listed:>7} {r.downloaded:>7} {r.pending:>8} {r.percent:>5.1f}% {self._fmt_dt(r.last_checked_at):>16}"
+                f"{r.id:<{name_width}} {r.status:<12} {r.listed:>7} {r.downloaded:>7} {r.pending:>8} {r.failed:>8} {r.percent:>5.1f}% {self._fmt_dt(r.last_checked_at):>16}"
             )
 
         total_listed = sum(r.listed for r in rows)
         total_done = sum(r.downloaded for r in rows)
         total_pending = sum(r.pending for r in rows)
+        total_failed = sum(r.failed for r in rows)
         total_pct = (total_done / total_listed * 100) if total_listed else 0.0
         print("-" * line_width)
         print(
-            f"{'total':<{name_width}} {'':<12} {total_listed:>7} {total_done:>7} {total_pending:>8} {total_pct:>5.1f}%"
+            f"{'total':<{name_width}} {'':<12} {total_listed:>7} {total_done:>7} {total_pending:>8} {total_failed:>8} {total_pct:>5.1f}%"
         )
