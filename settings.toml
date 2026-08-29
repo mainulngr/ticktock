@@ -135,3 +135,17 @@ username = "stickcrux"
 name = "Stick Crux"
 sec_uid = "MS4wLjABAAAAi-ZWPyTix2G0s0MoSxgf8IiF-yrrLPQXOyRL7nr8US5XTOZlTuaU0SoaC6PZEFRY"
 output_dir = "stickcrux"
+
+[[channel]]
+id = "miras_mini_english"
+username = "miras.mini.english"
+name = ""
+sec_uid = ""
+output_dir = "miras_mini_english"
+
+[[channel]]
+id = "nirguzinski"
+username = "nirguzinski"
+name = ""
+sec_uid = ""
+output_dir = "nirguzinski"

@@ -98,7 +98,11 @@ class Scheduler:
             self._focus_channel_id = focus.id if focus else None
 
         if focus is None:
-            logger.info("no channels with pending downloads")
+            focus = next((channel for channel in channels if force or self.is_due(channel, now)), None)
+            self._focus_channel_id = focus.id if focus else None
+
+        if focus is None:
+            logger.info("no channels due for listing")
             return
 
         if force or self.is_due(focus, now):

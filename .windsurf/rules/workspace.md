@@ -55,4 +55,4 @@ TikTok profile download scheduler. Downloads videos on a schedule with chronolog
 - The `videos` table tracks `failed`, `retries`, and `failed_at` to retry transient failures with a cooldown, and mark permanently unavailable videos as failed after `MAX_FAILED_RETRIES`.
 - `just status` shows `listed`, `done`, `pending`, and `failed`; percent is `done / listed`, and a channel with only failed entries is shown as `blocked`, not `done`.
 - The `TIKTOK_COOKIES_FILE` path is resolved to absolute so yt-dlp does not create stray `cookies.txt` files inside channel output folders.
-- The scheduler is sticky: it picks the channel with the most pending videos and keeps downloading from that same channel across cycles until its pending count reaches zero, then moves to the next most-backlogged channel.
+- The scheduler is sticky: it picks the channel with the most pending videos and keeps downloading from that same channel across cycles until its pending count reaches zero, then moves to the next most-backlogged channel. When no backlog exists, it checks a due channel so new profiles initialize and caught-up profiles discover new uploads.

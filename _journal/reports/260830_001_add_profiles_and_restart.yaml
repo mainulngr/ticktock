@@ -1,0 +1,14 @@
+intent: "Add the two profiles from profiles.txt and restart downloads with health checks."
+actions_taken:
+  - Added miras.mini.english and nirguzinski to settings.toml with stable local ids.
+  - Fixed scheduler fallback so profiles without existing pending rows can be listed and initialized.
+  - Confirmed miras.mini.english currently fails TikTok secondary-user-ID extraction in yt-dlp.
+  - Confirmed nirguzinski responds with a current server timestamp, but stopped its full 5,000-item foreground listing after five minutes.
+  - Restarted the background scheduler and confirmed its process is alive and listing channels.
+  - Verified Python modules compile successfully.
+files_modified:
+  - settings.toml
+  - ticktock/scheduler.py
+  - .windsurf/rules/workspace.md
+  - _journal/reports/260830_001_add_profiles_and_restart.yaml
+notes: "miras.mini.english cannot currently be resolved by username because yt-dlp reports that TikTok's secondary user ID is unavailable. nirguzinski appears reachable; its large initial listing will continue through the background scheduler when selected. profiles.txt remains an untracked user input file and was not modified."
