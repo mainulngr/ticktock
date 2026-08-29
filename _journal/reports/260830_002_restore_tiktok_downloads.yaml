@@ -1,0 +1,14 @@
+intent: "Restore successful TikTok downloads after challenge extraction failures."
+actions_taken:
+  - Upgraded pinned yt-dlp from 2026.7.4 to 2026.8.19.
+  - Reproduced TikTok challenge failures with and without browser impersonation.
+  - Verified exported cookies help profile listing but can invalidate public video challenge responses.
+  - Kept cookies for listing calls and removed them from public video download calls.
+  - Added up to three complete yt-dlp batch attempts so intermittent malformed challenge pages are retried while the archive skips successful files.
+  - Restarted the scheduler and confirmed a 6.20 MiB stickcrux video downloaded successfully before the next video began.
+files_modified:
+  - requirements.txt
+  - ticktock/yt_dlp.py
+  - .windsurf/rules/workspace.md
+  - _journal/reports/260830_002_restore_tiktok_downloads.yaml
+notes: "TikTok challenge responses remain intermittent, but downloads are working. The scheduler is actively processing a 14-video stickcrux batch. Status counts update after the batch completes and disk state is synchronized."

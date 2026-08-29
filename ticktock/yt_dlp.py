@@ -42,12 +42,8 @@ class YtDlp:
         return args
 
     def _base_args(self) -> List[str]:
-        """Args for actual downloads: use the conservative sleep settings."""
+        """Args for public video downloads: omit cookies to avoid TikTok challenge failures."""
         args = [str(self.config.yt_dlp_path), "--no-warnings", "--restrict-filenames"]
-        if self.config.cookies_file and self.config.cookies_file.exists():
-            args.extend(["--cookies", str(self.config.cookies_file)])
-        elif self.config.cookies_from_browser:
-            args.extend(["--cookies-from-browser", self.config.cookies_from_browser])
         if self.config.sleep_requests is not None:
             args.extend(["--sleep-requests", str(self.config.sleep_requests)])
         if self.config.sleep_interval is not None:
@@ -200,9 +196,12 @@ class YtDlp:
             cmd.extend(["--max-downloads", str(max_downloads)])
         cmd.extend(urls)
         logger.debug("downloading: %s", " ".join(cmd))
-        return_code = self._run_stream(cmd, cwd=output_dir, timeout=1200)
-        if return_code not in (0, 101):
-            raise YtDlpError(f"yt-dlp download failed (code {return_code})")
+        for attempt in range(1, 4):
+            return_code = self._run_stream(cmd, cwd=output_dir, timeout=1200)
+            if return_code in (0, 101):
+                return
+            logger.warning("yt-dlp download attempt %d/3 failed (code %d)", attempt, return_code)
+        raise YtDlpError(f"yt-dlp download failed after 3 attempts (code {return_code})")
 
     def download_channel(
         self,
