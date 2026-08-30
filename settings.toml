@@ -146,6 +146,6 @@ output_dir = "miras_mini_english"
 [[channel]]
 id = "nirguzinski"
 username = "nirguzinski"
-name = ""
-sec_uid = ""
+name = "Nir Guzinski - Actor/Creator"
+sec_uid = "MS4wLjABAAAA0P466YcVOzX33vuCquluO92biM58ZVpOUAaFEZ_LEOnG702oKvmVToaIXZPhgQOM"
 output_dir = "nirguzinski"

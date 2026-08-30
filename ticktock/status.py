@@ -76,12 +76,14 @@ class Status:
                             COUNT(v.video_id) AS listed,
                             COALESCE(SUM(CASE WHEN v.file_path IS NOT NULL AND v.file_path != '' AND (v.failed = 0 OR v.failed IS NULL) THEN 1 ELSE 0 END), 0) AS downloaded,
                             COALESCE(SUM(CASE
-                                WHEN (v.file_path IS NULL OR v.file_path = '')
+                                WHEN v.video_id IS NOT NULL
+                                     AND (v.file_path IS NULL OR v.file_path = '')
                                      AND (v.failed = 0 OR v.failed IS NULL)
                                      AND (v.retries = 0 OR v.retries IS NULL OR v.failed_at IS NULL OR v.failed_at <= '{cutoff}')
                                 THEN 1 ELSE 0 END), 0) AS pending,
                             COALESCE(SUM(CASE
-                                WHEN (v.file_path IS NULL OR v.file_path = '')
+                                WHEN v.video_id IS NOT NULL
+                                     AND (v.file_path IS NULL OR v.file_path = '')
                                      AND (
                                          v.failed = 1
                                          OR (v.retries > 0 AND v.failed_at IS NOT NULL AND v.failed_at > '{cutoff}')
@@ -102,8 +104,8 @@ class Status:
                             c.last_checked_at,
                             COUNT(v.video_id) AS listed,
                             COALESCE(SUM(CASE WHEN v.file_path IS NOT NULL AND v.file_path != '' AND (v.failed = 0 OR v.failed IS NULL) THEN 1 ELSE 0 END), 0) AS downloaded,
-                            COALESCE(SUM(CASE WHEN (v.file_path IS NULL OR v.file_path = '') AND (v.failed = 0 OR v.failed IS NULL) THEN 1 ELSE 0 END), 0) AS pending,
-                            COALESCE(SUM(CASE WHEN v.failed = 1 THEN 1 ELSE 0 END), 0) AS failed
+                            COALESCE(SUM(CASE WHEN v.video_id IS NOT NULL AND (v.file_path IS NULL OR v.file_path = '') AND (v.failed = 0 OR v.failed IS NULL) THEN 1 ELSE 0 END), 0) AS pending,
+                            COALESCE(SUM(CASE WHEN v.video_id IS NOT NULL AND v.failed = 1 THEN 1 ELSE 0 END), 0) AS failed
                         FROM channels c
                         LEFT JOIN videos v ON c.id = v.channel_id
                         GROUP BY c.id

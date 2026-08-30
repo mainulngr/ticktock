@@ -92,6 +92,17 @@ class Downloader:
 
         self.state.update_latest_from_downloaded(channel.id)
 
+    def _pending_from_list(self, videos: List[Video]) -> dict[str, Video]:
+        """Return pending videos from a fresh/cached list, keyed by video id."""
+        return {v.video_id: v for v in videos if self.state.is_pending(v.video_id)}
+
+    def _merge_db_pending(self, videos: dict[str, Video], channel_id: str) -> List[Video]:
+        """Ensure any pending videos that no longer appear in the list are still attempted."""
+        for db_video in self.state.get_pending_videos(channel_id, limit=None):
+            if db_video.video_id not in videos:
+                videos[db_video.video_id] = db_video
+        return list(videos.values())
+
     def download(self, channel: Channel, max_downloads: int | None = None) -> List[DownloadResult]:
         """Download the oldest pending videos for a single channel."""
         output_dir = self._output_dir(channel)
@@ -99,17 +110,14 @@ class Downloader:
 
         videos = self.list(channel)
 
-        if not videos:
-            logger.info("no videos found for %s", channel.id)
-            return []
+        if videos:
+            for video in videos:
+                self.state.record_video(video)
 
-        for video in videos:
-            self.state.record_video(video)
+        pending_by_id = self._pending_from_list(videos)
+        pending = self._merge_db_pending(pending_by_id, channel.id)
 
-        pending = sorted(
-            [v for v in videos if self.state.is_pending(v.video_id)],
-            key=lambda v: v.timestamp,
-        )
+        pending = sorted(pending, key=lambda v: v.timestamp)
 
         if not pending:
             logger.info("no pending videos for %s", channel.id)
