@@ -1,0 +1,11 @@
+intent: "Group downloaded TikTok channels into separate Emby collections."
+actions_taken:
+  - Read the 21 channel folders indexed under the Emby `Tocks` library.
+  - Created one Emby collection for each channel folder.
+  - Added each live channel folder to its matching collection.
+  - Verified all 21 collections and their folder membership.
+  - Verified the ticktock scheduler remained running.
+files_modified:
+  - .windsurf/rules/workspace.md
+  - _journal/reports/260830_011_group_emby_channels.yaml
+notes: "Collections contain the channel folders rather than static video lists, so future downloads appear within their existing channel grouping automatically."

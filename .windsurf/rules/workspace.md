@@ -58,3 +58,4 @@ TikTok profile download scheduler. Downloads videos on a schedule with chronolog
 - The `TIKTOK_COOKIES_FILE` path is resolved to absolute so yt-dlp does not create stray `cookies.txt` files inside channel output folders.
 - The scheduler rotates through due channels: it first initializes never-listed profiles, then downloads the oldest fresh pending videos for the due channel with the oldest `last_checked_at`, then falls back to cooldown-retry pending videos only when no fresh pending remains. A channel with fresh pending videos that produces no downloads is marked stalled and skipped for one interval.
 - The downloader merges fresh DB pending videos with fresh/cached listings, so older pending videos that are missing from a stale list cache are still attempted.
+- Emby exposes `Tocks` as a home-videos library and has one collection per channel. Each collection contains the live channel folder, so newly downloaded videos remain grouped without collection updates.
