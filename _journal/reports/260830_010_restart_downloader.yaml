@@ -1,0 +1,8 @@
+intent: "Restart the TikTok downloader after moving its output library."
+actions_taken:
+  - Restarted the ticktock scheduler with the standard watch settings.
+  - Verified the scheduler process is running.
+  - Verified the active configuration uses `/mega/media/tocks`.
+files_modified:
+  - _journal/reports/260830_010_restart_downloader.yaml
+notes: "Scheduler PID 53982 is running with `--max-downloads 20 --interval 120`."
