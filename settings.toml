@@ -102,13 +102,6 @@ sec_uid = "MS4wLjABAAAAuTua86PlX_HXyqSECWns151aKVZ-zl2rMaVyDKFPrqfcBIG2MMq_BrItg
 output_dir = "bark_laugh"
 
 [[channel]]
-id = "phanith_small"
-username = "phanith_small"
-name = "♎️ Phanith Small ♎️"
-sec_uid = "MS4wLjABAAAAnyGx68paZ-xR8EOROkBe922BJZhJpe9mG2g-ZUvr17FV29xRVti8bCiF_N-ROolE"
-output_dir = "phanith_small"
-
-[[channel]]
 id = "layrandlayr"
 username = "layrandlayr"
 name = "LAYR & LAYR"
@@ -135,10 +128,3 @@ username = "miras.mini.englis"
 name = "Mira's Mini English"
 sec_uid = "MS4wLjABAAAAUNXkBmjEYgNrgcEOig3HSGn5WnN2JdkzFpg9msYS_KOsxMyClzGAEr6bynbg6eHu"
 output_dir = "miras_mini_englis"
-
-[[channel]]
-id = "nirguzinski"
-username = "nirguzinski"
-name = "Nir Guzinski - Actor/Creator"
-sec_uid = "MS4wLjABAAAA0P466YcVOzX33vuCquluO92biM58ZVpOUAaFEZ_LEOnG702oKvmVToaIXZPhgQOM"
-output_dir = "nirguzinski"

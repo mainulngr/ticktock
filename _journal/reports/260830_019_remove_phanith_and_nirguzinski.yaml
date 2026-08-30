@@ -1,0 +1,13 @@
+intent: "Permanently discard the phanith_small and nirguzinski profiles and all associated data."
+actions_taken:
+  - Stopped the downloader before deletion.
+  - Removed both channels from `settings.toml`.
+  - Deleted 2 channel records and 2,559 SQLite video records.
+  - Removed 665 matching yt-dlp archive entries and both listing caches.
+  - Permanently deleted 2.0 GB from `phanith_small` and 872 MB from `nirguzinski`.
+  - Refreshed Emby and verified no indexed items remain for either profile.
+  - Restarted and verified the downloader.
+files_modified:
+  - settings.toml
+  - _journal/reports/260830_019_remove_phanith_and_nirguzinski.yaml
+notes: "Eighteen configured profiles remain. Scheduler PID 371830 is running."
