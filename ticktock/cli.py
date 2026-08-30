@@ -10,6 +10,8 @@ from typing import Sequence
 from .config import AppConfig, ensure_paths, load_channels, load_env_config
 from .cookies import refresh as refresh_cookies
 from .downloader import Downloader
+from .emby import EmbySync
+from .models import Channel
 from .resolver import Resolver
 from .scheduler import Scheduler
 from .state import State
@@ -36,6 +38,15 @@ def _build_scheduler(config: AppConfig) -> Scheduler:
     downloader = Downloader(config, state, ytdlp)
     resolver = Resolver(ytdlp)
     return Scheduler(config, state, downloader, resolver)
+
+
+def _sync_emby(config: AppConfig, channels: Sequence[Channel]) -> None:
+    if not config.emby_url or not config.emby_api_key:
+        return
+    try:
+        EmbySync(config.emby_url, config.emby_api_key, config.download_base_dir).sync(channels)
+    except Exception:
+        logging.exception("Emby collection sync failed")
 
 
 def _resolve(args: argparse.Namespace, config: AppConfig) -> int:
@@ -70,6 +81,7 @@ def _run(args: argparse.Namespace, config: AppConfig) -> int:
         channel_ids=args.channel or None,
         max_downloads=args.max_downloads,
     )
+    _sync_emby(config, channels)
     return 0
 
 
@@ -93,6 +105,7 @@ def _watch(args: argparse.Namespace, config: AppConfig) -> int:
             )
         except Exception:
             logging.exception("scheduler run failed")
+        _sync_emby(config, channels)
         logging.info("sleeping %d seconds", args.interval)
         time.sleep(args.interval)
 

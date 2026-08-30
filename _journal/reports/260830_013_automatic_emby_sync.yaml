@@ -1,0 +1,18 @@
+intent: "Automatically keep direct-video Emby channel collections synchronized with new downloads."
+actions_taken:
+  - Added a focused `EmbySync` service using the local Emby REST API.
+  - Added optional `EMBY_URL` and `EMBY_API_KEY` application configuration.
+  - Wired Emby synchronization after every one-shot and continuous scheduler cycle.
+  - Added a unit test covering missing-video insertion and redundant folder removal.
+  - Ran unit tests, bytecode compilation, configuration validation, and a live Emby sync.
+  - Restarted the scheduler with automatic synchronization enabled.
+files_modified:
+  - .env
+  - .env.example
+  - ticktock/config.py
+  - ticktock/cli.py
+  - ticktock/emby.py
+  - tests/test_emby.py
+  - .windsurf/rules/workspace.md
+  - _journal/reports/260830_013_automatic_emby_sync.yaml
+notes: "The API key remains only in the gitignored `.env`. Emby real-time monitoring indexes downloads; the following scheduler cycle adds newly indexed videos directly to their channel collection."
