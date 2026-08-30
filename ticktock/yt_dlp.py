@@ -43,7 +43,7 @@ class YtDlp:
 
     def _base_args(self) -> List[str]:
         """Args for public video downloads: omit cookies to avoid TikTok challenge failures."""
-        args = [str(self.config.yt_dlp_path), "--no-warnings", "--restrict-filenames"]
+        args = [str(self.config.yt_dlp_path), "--no-warnings", "--restrict-filenames", "--impersonate", "chrome"]
         if self.config.sleep_requests is not None:
             args.extend(["--sleep-requests", str(self.config.sleep_requests)])
         if self.config.sleep_interval is not None:

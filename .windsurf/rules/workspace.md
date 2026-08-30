@@ -9,6 +9,7 @@ TikTok profile download scheduler. Downloads videos on a schedule with chronolog
 ## Stack
 - Python 3.11+
 - `yt-dlp` 2026.8.19 for extraction and downloading
+- `curl-cffi` 0.15.0 for Chrome TLS/browser impersonation on TikTok downloads
 - TOML for channel configuration
 - SQLite for persistent download state
 - `just` for task recipes
@@ -50,7 +51,7 @@ TikTok profile download scheduler. Downloads videos on a schedule with chronolog
 - Scheduler respects `min_interval` and per-channel `last_checked_at` to avoid hammering TikTok.
 - `.env` supports `DOWNLOAD_BASE_DIR`, `TIKTOK_COOKIES_FILE` / `TIKTOK_COOKIES_FROM_BROWSER`, optional `TIKTOK_REFRESH_COOKIES=true` (re-export from browser before each cycle), `THUMBNAIL_FFMPEG_PATH` (local JPEG thumbnail extraction, default `ffmpeg`), `MIN_INTERVAL_SECONDS` (per-channel due interval), `LIST_CACHE_TTL` (cache channel listings), `LIST_MAX_ITEMS` (cap channel listings, default no limit), `SLEEP_BETWEEN_CHANNELS` (pause between channels), yt-dlp sleep options, `FAILED_RETRY_COOLDOWN_SECONDS` (default 21600 = 6h), and `MAX_FAILED_RETRIES` (default 3) for cooldown-based failed download retry.
 - `just refresh-cookies` only keeps TikTok-domain cookies, not the whole browser session. Cookies are used for profile listing but omitted from public video downloads because they can invalidate TikTok challenge responses.
-- Actual download batches pass `--ignore-errors` so one malformed/unavailable video does not abort the rest of the batch; the command is run once per batch and failed videos are retried later by the scheduler instead of immediately.
+- Actual download batches use the project virtualenv yt-dlp with Chrome impersonation and pass `--ignore-errors`, so one malformed/unavailable video does not abort the rest of the batch; failed videos are retried later by the scheduler instead of immediately.
 - Channel listings are cached under `data/list_cache/` so `max-downloads` runs do not re-list the whole channel every time.
 - Download order is oldest-first: the scheduler backfills the oldest fresh pending video for the due channel with the oldest `last_checked_at` each run, then moves forward in time.
 - The `videos` table tracks `failed`, `retries`, and `failed_at` to retry transient failures with a cooldown, and mark permanently unavailable videos as failed after `MAX_FAILED_RETRIES`.

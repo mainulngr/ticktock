@@ -1,0 +1,23 @@
+intent: "Diagnose failed TikTok downloads and recover videos blocked by missing browser impersonation."
+actions_taken:
+  - Left `layrandlayr` untouched because its deletion was not confirmed.
+  - Audited 3,900 listed videos: 3,252 downloaded, 648 unresolved, and no fresh unlisted backlog.
+  - Confirmed representative failures were TikTok anti-bot extraction responses rather than verified deletions.
+  - Installed and pinned `curl-cffi` 0.15.0 to provide yt-dlp Chrome impersonation.
+  - Verified a previously failed video resolves successfully with explicit Chrome impersonation.
+  - Added Chrome impersonation to all public download requests.
+  - Pinned `YT_DLP_PATH` to the project virtualenv and resolved it absolutely for channel-directory execution.
+  - Requeued all 648 unresolved videos and restarted the scheduler.
+  - Verified the live yt-dlp child uses the virtualenv executable and `--impersonate chrome`.
+files_modified:
+  - .env
+  - .env.example
+  - requirements.txt
+  - pyproject.toml
+  - ticktock/config.py
+  - ticktock/yt_dlp.py
+  - tests/test_yt_dlp.py
+  - data/state.db
+  - .windsurf/rules/workspace.md
+  - _journal/reports/260830_022_recover_failed_downloads.yaml
+notes: "Some TikTok videos still return anti-bot responses even with impersonation, but the representative failed video became extractable and all unresolved active-profile videos are being retried. Scheduler PID 396031 is running."

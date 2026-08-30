@@ -55,6 +55,11 @@ def _bool_env(name: str, default: bool = False) -> bool:
     return value.lower() in ("1", "true", "yes", "on")
 
 
+def _executable_env(name: str, default: str) -> str:
+    value = os.getenv(name, default)
+    return str(Path(value).resolve()) if "/" in value else value
+
+
 def load_env_config() -> AppConfig:
     load_env()
     return AppConfig(
@@ -71,7 +76,7 @@ def load_env_config() -> AppConfig:
         sleep_requests=_float_env("YT_DLP_SLEEP_REQUESTS"),
         sleep_interval=_float_env("YT_DLP_SLEEP_INTERVAL"),
         max_sleep_interval=_float_env("YT_DLP_MAX_SLEEP_INTERVAL"),
-        yt_dlp_path=os.getenv("YT_DLP_PATH", "yt-dlp"),
+        yt_dlp_path=_executable_env("YT_DLP_PATH", "yt-dlp"),
         thumbnail_ffmpeg_path=os.getenv("THUMBNAIL_FFMPEG_PATH", "ffmpeg"),
         failed_retry_cooldown=timedelta(seconds=_int_env("FAILED_RETRY_COOLDOWN_SECONDS", 21600)),
         max_failed_retries=_int_env("MAX_FAILED_RETRIES", 3),

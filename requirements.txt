@@ -1,2 +1,3 @@
 yt-dlp==2026.8.19
 python-dotenv==1.2.2
+curl-cffi==0.15.0
