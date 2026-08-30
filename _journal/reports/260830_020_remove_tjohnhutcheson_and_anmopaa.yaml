@@ -1,0 +1,13 @@
+intent: "Permanently discard the tjohnhutcheson and anmopaa profiles and all associated data."
+actions_taken:
+  - Stopped the downloader before deletion.
+  - Removed both channels from `settings.toml`.
+  - Deleted 2 channel records and 803 SQLite video records.
+  - Removed 711 matching yt-dlp archive entries and both listing caches.
+  - Permanently deleted 5.3 GB from `tjohnhutcheson` and 1.1 GB from `anmopaa`.
+  - Refreshed Emby and verified no indexed items remain for either profile.
+  - Restarted and verified the downloader.
+files_modified:
+  - settings.toml
+  - _journal/reports/260830_020_remove_tjohnhutcheson_and_anmopaa.yaml
+notes: "Sixteen configured profiles remain. Scheduler PID 379292 is running."

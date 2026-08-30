@@ -74,25 +74,11 @@ sec_uid = "MS4wLjABAAAAm2LN1lFRXi3kJdFo3TsL6BplYydBA26TcjzM6x2sXpeQqHLpBqVHNVf5q
 output_dir = "fridge_111"
 
 [[channel]]
-id = "anmopaa"
-username = "anmopaa"
-name = "Anmopaa"
-sec_uid = "MS4wLjABAAAAQnRVADtQa4olOJgXhVd2EuGZkFcceq5_5Bdvz-c5fsSRucTD7H2TTHzmpaJ-DXxV"
-output_dir = "anmopaa"
-
-[[channel]]
 id = "learn_english_with_jamie"
 username = "learn.english.with.jamie"
 name = "Learn English With Jamie"
 sec_uid = "MS4wLjABAAAAdXIY3OxAoDxN2BkM-q-NuCl8V0DNRjQ9Ej6NQr6uI4UTv0hhJrZxywN4_ial8__9"
 output_dir = "learn_english_with_jamie"
-
-[[channel]]
-id = "tjohnhutcheson"
-username = "tjohnhutcheson"
-name = "Hillbilly Arts&Crafts"
-sec_uid = "MS4wLjABAAAAHpDX9qJNQzB0gpG--E3SnCTXKtJQJFQAH3wZT4I49rC2qzEX8U2MUVfZ7vcSrnzn"
-output_dir = "tjohnhutcheson"
 
 [[channel]]
 id = "bark_laugh"
