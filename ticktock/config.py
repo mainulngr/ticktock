@@ -31,8 +31,6 @@ class AppConfig:
     yt_dlp_path: str
     failed_retry_cooldown: timedelta
     max_failed_retries: int
-    emby_url: str | None
-    emby_api_key: str | None
 
 
 def load_env() -> None:
@@ -75,8 +73,6 @@ def load_env_config() -> AppConfig:
         yt_dlp_path=os.getenv("YT_DLP_PATH", "yt-dlp"),
         failed_retry_cooldown=timedelta(seconds=_int_env("FAILED_RETRY_COOLDOWN_SECONDS", 21600)),
         max_failed_retries=_int_env("MAX_FAILED_RETRIES", 3),
-        emby_url=os.getenv("EMBY_URL") or None,
-        emby_api_key=os.getenv("EMBY_API_KEY") or None,
     )
 
 

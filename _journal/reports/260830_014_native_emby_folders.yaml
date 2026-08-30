@@ -1,0 +1,18 @@
+intent: "Use Emby's native folder browsing and real-time monitoring instead of custom synchronized collections."
+actions_taken:
+  - Removed the 21 custom channel collections without targeting media files.
+  - Verified all 21 channel folders remain under the native `Tocks` library.
+  - Removed the Emby API client, scheduler integration, unit test, and environment options.
+  - Removed the Emby API key from the local `.env` configuration.
+  - Verified native home-video folder browsing, top-level folder preservation, and real-time monitoring.
+  - Restarted the scheduler without Emby API configuration.
+files_modified:
+  - .env
+  - .env.example
+  - ticktock/config.py
+  - ticktock/cli.py
+  - ticktock/emby.py
+  - tests/test_emby.py
+  - .windsurf/rules/workspace.md
+  - _journal/reports/260830_014_native_emby_folders.yaml
+notes: "Emby now handles discovery itself. Browse `Tocks`, select a channel folder, then view its videos; new files are detected by Emby's real-time monitor."
