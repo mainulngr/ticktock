@@ -20,7 +20,7 @@ TikTok profile download scheduler. Downloads videos on a schedule with chronolog
 - `justfile`: common commands
 - `.env` / `.env.example`: environment and secrets
 - `_journal/`: task inbox and post-execution reports
-- `DOWNLOAD_BASE_DIR` (currently `/mega/sata/tocks/`): video output (configured in `.env`)
+- `DOWNLOAD_BASE_DIR` (currently `/mega/media/tocks/`): video output (configured in `.env`)
 - `data/`: state and cache (gitignored)
 
 ## Key commands

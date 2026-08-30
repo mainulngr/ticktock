@@ -1,0 +1,12 @@
+intent: "Move the TikTok download library to the media directory and register it with Emby."
+actions_taken:
+  - Stopped the ticktock scheduler and active yt-dlp process.
+  - Moved `/mega/sata/tocks` to `/mega/media/tocks` on the same filesystem.
+  - Updated `DOWNLOAD_BASE_DIR` in the local `.env` configuration.
+  - Added `/mega/media/tocks` to Emby as the `Tocks` home-videos library with real-time monitoring.
+  - Verified the moved directory, application configuration, and Emby library registration.
+files_modified:
+  - .env
+  - .windsurf/rules/workspace.md
+  - _journal/reports/260830_009_move_tocks_to_emby.yaml
+notes: "The downloader remains stopped as requested. Emby accepted the library and started its refresh."
