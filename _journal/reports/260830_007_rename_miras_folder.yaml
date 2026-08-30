@@ -1,0 +1,12 @@
+intent: "Make miras output folder and file paths match the renamed channel id."
+actions_taken:
+  - Stopped the scheduler.
+  - Updated settings.toml output_dir from miras_mini_english to miras_mini_englis.
+  - Renamed /mega/sata/tocks/miras_mini_english to /mega/sata/tocks/miras_mini_englis.
+  - Updated the three downloaded file_path entries in data/state.db to the new folder.
+  - Restarted the scheduler and verified status still shows 3 done for miras_mini_englis.
+files_modified:
+  - settings.toml
+  - data/state.db (file_path updates)
+  - _journal/reports/260830_007_rename_miras_folder.yaml
+notes: "The scheduler resumed with nirguzinski due to the larger pending backlog."

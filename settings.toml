@@ -141,7 +141,7 @@ id = "miras_mini_englis"
 username = "miras.mini.englis"
 name = "Mira's Mini English"
 sec_uid = "MS4wLjABAAAAUNXkBmjEYgNrgcEOig3HSGn5WnN2JdkzFpg9msYS_KOsxMyClzGAEr6bynbg6eHu"
-output_dir = "miras_mini_english"
+output_dir = "miras_mini_englis"
 
 [[channel]]
 id = "nirguzinski"
