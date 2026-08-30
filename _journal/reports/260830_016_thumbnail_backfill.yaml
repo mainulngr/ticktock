@@ -1,0 +1,9 @@
+intent: "Generate Emby-compatible JPEG thumbnails for the existing video library."
+actions_taken:
+  - Counted 5,209 videos, 4 existing thumbnails, and 5,205 missing thumbnails.
+  - Verified 768 GB of free storage on the media filesystem.
+  - Started a resumable sequential FFmpeg backfill in the background.
+  - Verified the process generated valid JPEG sidecars without failures.
+files_modified:
+  - _journal/reports/260830_016_thumbnail_backfill.yaml
+notes: "Backfill PID 130441 writes progress to `data/thumbnail-backfill.log`. Initial verification reached 75/5,205 with zero failures. Re-running the process is safe because existing JPEGs are skipped."
