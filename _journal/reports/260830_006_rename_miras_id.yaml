@@ -1,0 +1,12 @@
+intent: "Rename miras channel id to match the corrected username without losing state."
+actions_taken:
+  - Stopped the scheduler.
+  - Changed id from miras_mini_english to miras_mini_englis in settings.toml.
+  - Kept output_dir as miras_mini_english so existing downloads do not move.
+  - Renamed the channel id and all related video rows in data/state.db.
+  - Restarted the scheduler and verified status still shows the 24 listed / 3 done / 19 pending / 2 failed counts under the new id.
+files_modified:
+  - settings.toml
+  - data/state.db (migrated channel id and video channel_id rows)
+  - _journal/reports/260830_006_rename_miras_id.yaml
+notes: "The scheduler is running and picked nirguzinski again due to the larger pending backlog. miras will be processed when that backlog is cleared."
