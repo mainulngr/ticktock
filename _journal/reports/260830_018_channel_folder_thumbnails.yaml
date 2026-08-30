@@ -1,0 +1,15 @@
+intent: "Ensure every Emby channel-folder card displays a thumbnail."
+actions_taken:
+  - Identified that blank cards were channel folders rather than videos.
+  - Updated `Thumbnailer` to create `folder.jpg` atomically from the first available video thumbnail.
+  - Added unit assertions for new and existing video-thumbnail paths.
+  - Created `folder.jpg` for all 20 existing channel folders.
+  - Refreshed Emby and verified primary images were indexed for all 20 folders.
+  - Verified the video-thumbnail backfill completed all 1,674 resumed items without failures.
+  - Restarted the scheduler with folder-thumbnail automation enabled.
+files_modified:
+  - ticktock/thumbnails.py
+  - tests/test_thumbnails.py
+  - .windsurf/rules/workspace.md
+  - _journal/reports/260830_018_channel_folder_thumbnails.yaml
+notes: "All 20 channel folders now have valid JPEG images and Emby Primary image tags. Scheduler PID 359222 is running."

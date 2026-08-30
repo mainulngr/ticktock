@@ -22,6 +22,7 @@ class ThumbnailerTest(unittest.TestCase):
 
             self.assertTrue(generated)
             self.assertEqual(b"jpeg", video.with_suffix(".jpg").read_bytes())
+            self.assertEqual(b"jpeg", video.parent.joinpath("folder.jpg").read_bytes())
             self.assertEqual("custom-ffmpeg", mocked_run.call_args.args[0][0])
             self.assertFalse(video.with_suffix(".tmp.jpg").exists())
 
@@ -35,6 +36,7 @@ class ThumbnailerTest(unittest.TestCase):
                 generated = Thumbnailer().generate(video)
 
             self.assertFalse(generated)
+            self.assertTrue(video.parent.joinpath("folder.jpg").exists())
             mocked_run.assert_not_called()
 
 
