@@ -109,13 +109,6 @@ sec_uid = "MS4wLjABAAAAnyGx68paZ-xR8EOROkBe922BJZhJpe9mG2g-ZUvr17FV29xRVti8bCiF_
 output_dir = "phanith_small"
 
 [[channel]]
-id = "animals_tv217"
-username = "animals.tv217"
-name = "Animals TV"
-sec_uid = "MS4wLjABAAAAggtMkJ7iWmUFHIw06uoMSFIzy08oGEzRhBtVTg__qvMB2snp7hwRa_PWnanNIr1F"
-output_dir = "animals_tv217"
-
-[[channel]]
 id = "layrandlayr"
 username = "layrandlayr"
 name = "LAYR & LAYR"

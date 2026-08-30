@@ -1,0 +1,13 @@
+intent: "Permanently discard the animals_tv217 profile and all associated data."
+actions_taken:
+  - Stopped the downloader and thumbnail backfill before deletion.
+  - Removed the `animals_tv217` channel from `settings.toml`.
+  - Deleted 520 SQLite video records and the channel state record.
+  - Removed 396 matching entries from the yt-dlp archive and deleted the list cache.
+  - Permanently deleted `/mega/media/tocks/animals_tv217` containing 3.2 GB and 792 files.
+  - Refreshed Emby and verified no indexed items remain for the profile.
+  - Restarted the downloader and resumed thumbnail backfill for the remaining library.
+files_modified:
+  - settings.toml
+  - _journal/reports/260830_017_remove_animals_tv217.yaml
+notes: "Scheduler PID 282780 and resumed backfill PID 282851 are running. The resumed backfill found 1,674 missing thumbnails among 4,820 remaining videos."
