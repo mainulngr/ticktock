@@ -138,9 +138,9 @@ output_dir = "stickcrux"
 
 [[channel]]
 id = "miras_mini_english"
-username = "miras.mini.english"
-name = ""
-sec_uid = ""
+username = "miras.mini.englis"
+name = "Mira's Mini English"
+sec_uid = "MS4wLjABAAAAUNXkBmjEYgNrgcEOig3HSGn5WnN2JdkzFpg9msYS_KOsxMyClzGAEr6bynbg6eHu"
 output_dir = "miras_mini_english"
 
 [[channel]]

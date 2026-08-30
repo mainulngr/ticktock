@@ -1,0 +1,11 @@
+intent: "Resolve miras_mini_english using the correct handle and a sample video."
+actions_taken:
+  - Noted the handle in profiles.txt is @miras.mini.englis, not @miras.mini.english.
+  - Extracted channel_id (sec_uid) from the sample video URL and updated settings.toml.
+  - Ran a one-shot download for miras_mini_english to verify listing and download work.
+  - Restarted the scheduler so it loads the corrected settings.
+  - Wrote a report.
+files_modified:
+  - settings.toml
+  - _journal/reports/260830_005_resolve_miras.yaml
+notes: "miras_mini_english now lists 24 videos, 3 done, 19 pending, 2 failed. The background scheduler will continue with nirguzinski's larger backlog before returning to miras."
