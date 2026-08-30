@@ -29,6 +29,7 @@ class AppConfig:
     sleep_interval: float | None
     max_sleep_interval: float | None
     yt_dlp_path: str
+    thumbnail_ffmpeg_path: str
     failed_retry_cooldown: timedelta
     max_failed_retries: int
 
@@ -71,6 +72,7 @@ def load_env_config() -> AppConfig:
         sleep_interval=_float_env("YT_DLP_SLEEP_INTERVAL"),
         max_sleep_interval=_float_env("YT_DLP_MAX_SLEEP_INTERVAL"),
         yt_dlp_path=os.getenv("YT_DLP_PATH", "yt-dlp"),
+        thumbnail_ffmpeg_path=os.getenv("THUMBNAIL_FFMPEG_PATH", "ffmpeg"),
         failed_retry_cooldown=timedelta(seconds=_int_env("FAILED_RETRY_COOLDOWN_SECONDS", 21600)),
         max_failed_retries=_int_env("MAX_FAILED_RETRIES", 3),
     )

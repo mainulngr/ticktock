@@ -14,6 +14,7 @@ from .resolver import Resolver
 from .scheduler import Scheduler
 from .state import State
 from .status import Status
+from .thumbnails import Thumbnailer
 from .yt_dlp import YtDlp
 
 
@@ -33,7 +34,7 @@ def _build_scheduler(config: AppConfig) -> Scheduler:
         max_failed_retries=config.max_failed_retries,
     )
     ytdlp = YtDlp(config)
-    downloader = Downloader(config, state, ytdlp)
+    downloader = Downloader(config, state, ytdlp, Thumbnailer(config.thumbnail_ffmpeg_path))
     resolver = Resolver(ytdlp)
     return Scheduler(config, state, downloader, resolver)
 

@@ -1,0 +1,19 @@
+intent: "Automatically generate Emby-compatible thumbnails for newly downloaded TikTok videos."
+actions_taken:
+  - Added an SRP `Thumbnailer` service that extracts a frame at 1 second with FFmpeg.
+  - Writes thumbnails atomically as matching `.jpg` sidecars recognized by Emby.
+  - Wired thumbnail generation after each successfully downloaded video.
+  - Added configurable `THUMBNAIL_FFMPEG_PATH` with an `ffmpeg` default.
+  - Added unit coverage for generation, atomic replacement, and existing-thumbnail skips.
+  - Verified generation with the installed FFmpeg against a real video.
+  - Restarted the scheduler with thumbnail automation enabled.
+files_modified:
+  - .env.example
+  - ticktock/config.py
+  - ticktock/cli.py
+  - ticktock/downloader.py
+  - ticktock/thumbnails.py
+  - tests/test_thumbnails.py
+  - .windsurf/rules/workspace.md
+  - _journal/reports/260830_015_automatic_video_thumbnails.yaml
+notes: "Automation applies to successful downloads from now on. The existing 5,189-video library was not backfilled because that is a separate long-running job."

@@ -10,6 +10,7 @@ from .config import AppConfig
 from .list_cache import ListCache
 from .models import Channel, DownloadResult, Video
 from .state import State
+from .thumbnails import Thumbnailer
 from .utils import ensure_dir
 from .yt_dlp import YtDlp, YtDlpError
 
@@ -21,10 +22,11 @@ class Downloader:
 
     ARCHIVE_FILENAME = "yt-dlp-archive.txt"
 
-    def __init__(self, config: AppConfig, state: State, ytdlp: YtDlp) -> None:
+    def __init__(self, config: AppConfig, state: State, ytdlp: YtDlp, thumbnailer: Thumbnailer) -> None:
         self.config = config
         self.state = state
         self.ytdlp = ytdlp
+        self.thumbnailer = thumbnailer
         self.list_cache = (
             ListCache(config.state_db_path.parent, config.list_cache_ttl)
             if config.list_cache_ttl.total_seconds() > 0
@@ -36,6 +38,13 @@ class Downloader:
 
     def _output_dir(self, channel: Channel) -> Path:
         return ensure_dir(channel.output_path(self.config.download_base_dir))
+
+    def _video_path(self, output_dir: Path, video_id: str) -> Path | None:
+        for suffix in (".mp4", ".webm", ".mkv", ".mov"):
+            path = next(output_dir.glob(f"*_{video_id}{suffix}"), None)
+            if path:
+                return path
+        return None
 
     def list(self, channel: Channel) -> List[Video]:
         if self.list_cache:
@@ -132,6 +141,9 @@ class Downloader:
         results: List[DownloadResult] = []
         for video in pending:
             if self.state.is_downloaded(video.video_id):
+                video_path = self._video_path(output_dir, video.video_id)
+                if video_path:
+                    self.thumbnailer.generate(video_path)
                 results.append(DownloadResult(video))
             else:
                 if not error:
