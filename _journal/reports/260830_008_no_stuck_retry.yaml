@@ -1,0 +1,17 @@
+intent: "Make the main scheduler rotate through all profiles and only retry failed videos after all fresh pending is done."
+actions_taken:
+  - Stopped the scheduler.
+  - Added `is_fresh_pending`, `is_retry_pending`, `get_fresh_pending_count`, `get_retry_pending_count`, `get_fresh_pending_videos`, and `get_retry_pending_videos` to `state.py`.
+  - Updated `downloader.py` to work on fresh-pending only and added a `retry()` method for cooldown-retry videos.
+  - Rewrote `scheduler.py` to rotate by oldest `last_checked_at` with fresh pending, and fall back to retry only when no fresh pending remains.
+  - Reduced `yt-dlp` download command to a single attempt; retries are now handled by the scheduler cooldown logic.
+  - Updated `workspace.md` to describe the new round-robin and retry behavior.
+  - Restarted the scheduler; the first cycle picked `layrandlayr` (oldest due) and is proceeding through the rotation.
+files_modified:
+  - ticktock/state.py
+  - ticktock/downloader.py
+  - ticktock/scheduler.py
+  - ticktock/yt_dlp.py
+  - .windsurf/rules/workspace.md
+  - _journal/reports/260830_008_no_stuck_retry.yaml
+notes: "The new `watch` is running. It will cycle through all due channels oldest-first, avoiding `nirguzinski` getting stuck. Failed videos will be retried only when no fresh pending remains (or after cooldown)."

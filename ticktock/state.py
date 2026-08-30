@@ -194,6 +194,11 @@ class State:
         return cutoff.replace(tzinfo=None).isoformat()
 
     def is_pending(self, video_id: str) -> bool:
+        """A video is pending if it is fresh or eligible for a cooldown retry."""
+        return self.is_fresh_pending(video_id) or self.is_retry_pending(video_id)
+
+    def is_fresh_pending(self, video_id: str) -> bool:
+        """A fresh video has never been attempted before."""
         with self._connection() as conn:
             row = conn.execute(
                 """
@@ -201,7 +206,23 @@ class State:
                 WHERE video_id = ?
                 AND (file_path IS NULL OR file_path = '')
                 AND (failed = 0 OR failed IS NULL)
-                AND (retries = 0 OR retries IS NULL OR failed_at IS NULL OR failed_at <= ?)
+                AND (retries = 0 OR retries IS NULL)
+                """,
+                (video_id,),
+            ).fetchone()
+        return row is not None
+
+    def is_retry_pending(self, video_id: str) -> bool:
+        """A retry video has failed before and its cooldown has passed."""
+        with self._connection() as conn:
+            row = conn.execute(
+                """
+                SELECT 1 FROM videos
+                WHERE video_id = ?
+                AND (file_path IS NULL OR file_path = '')
+                AND (failed = 0 OR failed IS NULL)
+                AND retries > 0
+                AND failed_at <= ?
                 """,
                 (video_id, self._retry_cutoff()),
             ).fetchone()
@@ -216,6 +237,10 @@ class State:
         return row[0] if row else 0
 
     def get_pending_count(self, channel_id: str) -> int:
+        """Total pending (fresh + retry-eligible)."""
+        return self.get_fresh_pending_count(channel_id) + self.get_retry_pending_count(channel_id)
+
+    def get_fresh_pending_count(self, channel_id: str) -> int:
         with self._connection() as conn:
             row = conn.execute(
                 """
@@ -223,19 +248,61 @@ class State:
                 WHERE channel_id = ?
                 AND (file_path IS NULL OR file_path = '')
                 AND (failed = 0 OR failed IS NULL)
-                AND (retries = 0 OR retries IS NULL OR failed_at IS NULL OR failed_at <= ?)
+                AND (retries = 0 OR retries IS NULL)
+                """,
+                (channel_id,),
+            ).fetchone()
+        return row[0] if row else 0
+
+    def get_retry_pending_count(self, channel_id: str) -> int:
+        with self._connection() as conn:
+            row = conn.execute(
+                """
+                SELECT COUNT(*) FROM videos
+                WHERE channel_id = ?
+                AND (file_path IS NULL OR file_path = '')
+                AND (failed = 0 OR failed IS NULL)
+                AND retries > 0
+                AND failed_at <= ?
                 """,
                 (channel_id, self._retry_cutoff()),
             ).fetchone()
         return row[0] if row else 0
 
     def get_pending_videos(self, channel_id: str, limit: int | None = None) -> List[Video]:
+        """All pending videos (fresh + retry-eligible)."""
+        fresh = self.get_fresh_pending_videos(channel_id)
+        retry = self.get_retry_pending_videos(channel_id)
+        combined = {v.video_id: v for v in fresh}
+        combined.update({v.video_id: v for v in retry})
+        videos = list(combined.values())
+        videos.sort(key=lambda v: v.timestamp)
+        return videos[:limit] if limit else videos
+
+    def get_fresh_pending_videos(self, channel_id: str, limit: int | None = None) -> List[Video]:
         with self._connection() as conn:
             sql = (
                 "SELECT * FROM videos WHERE channel_id = ? "
                 "AND (file_path IS NULL OR file_path = '') "
                 "AND (failed = 0 OR failed IS NULL) "
-                "AND (retries = 0 OR retries IS NULL OR failed_at IS NULL OR failed_at <= ?) "
+                "AND (retries = 0 OR retries IS NULL) "
+                "ORDER BY upload_timestamp"
+            )
+            params: list = [channel_id]
+            if limit:
+                sql += " LIMIT ?"
+                params.append(limit)
+            rows = conn.execute(sql, params).fetchall()
+        return self._rows_to_videos(rows)
+
+    def get_retry_pending_videos(self, channel_id: str, limit: int | None = None) -> List[Video]:
+        with self._connection() as conn:
+            sql = (
+                "SELECT * FROM videos WHERE channel_id = ? "
+                "AND (file_path IS NULL OR file_path = '') "
+                "AND (failed = 0 OR failed IS NULL) "
+                "AND retries > 0 "
+                "AND failed_at <= ? "
                 "ORDER BY upload_timestamp"
             )
             params: list = [channel_id, self._retry_cutoff()]

@@ -93,39 +93,27 @@ class Downloader:
         self.state.update_latest_from_downloaded(channel.id)
 
     def _pending_from_list(self, videos: List[Video]) -> dict[str, Video]:
-        """Return pending videos from a fresh/cached list, keyed by video id."""
-        return {v.video_id: v for v in videos if self.state.is_pending(v.video_id)}
+        """Return fresh pending videos from a fresh/cached list, keyed by video id."""
+        return {v.video_id: v for v in videos if self.state.is_fresh_pending(v.video_id)}
 
     def _merge_db_pending(self, videos: dict[str, Video], channel_id: str) -> List[Video]:
-        """Ensure any pending videos that no longer appear in the list are still attempted."""
-        for db_video in self.state.get_pending_videos(channel_id, limit=None):
+        """Ensure any fresh pending videos that no longer appear in the list are still attempted."""
+        for db_video in self.state.get_fresh_pending_videos(channel_id, limit=None):
             if db_video.video_id not in videos:
                 videos[db_video.video_id] = db_video
         return list(videos.values())
 
-    def download(self, channel: Channel, max_downloads: int | None = None) -> List[DownloadResult]:
-        """Download the oldest pending videos for a single channel."""
+    def _download_videos(self, channel: Channel, pending: List[Video], max_downloads: int | None = None) -> List[DownloadResult]:
+        """Download a given list of videos and record results."""
         output_dir = self._output_dir(channel)
         archive_path = self._archive_path(channel)
 
-        videos = self.list(channel)
-
-        if videos:
-            for video in videos:
-                self.state.record_video(video)
-
-        pending_by_id = self._pending_from_list(videos)
-        pending = self._merge_db_pending(pending_by_id, channel.id)
-
-        pending = sorted(pending, key=lambda v: v.timestamp)
-
-        if not pending:
-            logger.info("no pending videos for %s", channel.id)
-            self._sync_state_from_disk(channel)
-            return []
-
         if max_downloads is not None:
             pending = pending[:max_downloads]
+
+        if not pending:
+            self._sync_state_from_disk(channel)
+            return []
 
         logger.info("downloading %d pending video(s) for %s", len(pending), channel.id)
 
@@ -152,3 +140,31 @@ class Downloader:
                 results.append(DownloadResult(video, error=error))
 
         return results
+
+    def download(self, channel: Channel, max_downloads: int | None = None) -> List[DownloadResult]:
+        """Download the oldest fresh pending videos for a single channel."""
+        videos = self.list(channel)
+
+        if videos:
+            for video in videos:
+                self.state.record_video(video)
+
+        pending_by_id = self._pending_from_list(videos)
+        pending = self._merge_db_pending(pending_by_id, channel.id)
+
+        if not pending:
+            logger.info("no fresh pending videos for %s", channel.id)
+            self._sync_state_from_disk(channel)
+            return []
+
+        return self._download_videos(channel, sorted(pending, key=lambda v: v.timestamp), max_downloads=max_downloads)
+
+    def retry(self, channel: Channel, max_downloads: int | None = None) -> List[DownloadResult]:
+        """Download the oldest retry-pending videos for a single channel."""
+        pending = self.state.get_retry_pending_videos(channel.id)
+        if not pending:
+            logger.info("no retry pending videos for %s", channel.id)
+            return []
+
+        logger.info("retrying %d video(s) for %s", len(pending), channel.id)
+        return self._download_videos(channel, pending, max_downloads=max_downloads)

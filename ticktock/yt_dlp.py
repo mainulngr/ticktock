@@ -197,12 +197,9 @@ class YtDlp:
             cmd.extend(["--max-downloads", str(max_downloads)])
         cmd.extend(urls)
         logger.debug("downloading: %s", " ".join(cmd))
-        for attempt in range(1, 4):
-            return_code = self._run_stream(cmd, cwd=output_dir, timeout=1200)
-            if return_code in (0, 101):
-                return
-            logger.warning("yt-dlp download attempt %d/3 failed (code %d)", attempt, return_code)
-        raise YtDlpError(f"yt-dlp download failed after 3 attempts (code {return_code})")
+        return_code = self._run_stream(cmd, cwd=output_dir, timeout=1200)
+        if return_code not in (0, 101):
+            raise YtDlpError(f"yt-dlp download failed (code {return_code})")
 
     def download_channel(
         self,

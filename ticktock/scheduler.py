@@ -27,7 +27,6 @@ class Scheduler:
         self.state = state
         self.downloader = downloader
         self.resolver = resolver
-        self._focus_channel_id: str | None = None
         self._stalled_channel_id: str | None = None
 
     def is_due(self, channel: Channel, now: datetime | None = None) -> bool:
@@ -38,7 +37,13 @@ class Scheduler:
         elapsed = now - channel_state.last_checked_at
         return elapsed >= self.config.min_interval
 
-    def run_channel(self, channel: Channel, now: datetime | None = None, max_downloads: int | None = None) -> int:
+    def run_channel(
+        self,
+        channel: Channel,
+        now: datetime | None = None,
+        max_downloads: int | None = None,
+        retry: bool = False,
+    ) -> int:
         now = now or datetime.utcnow()
         logger.info("checking channel: %s", channel.id)
 
@@ -52,7 +57,10 @@ class Scheduler:
                 logger.exception("resolver failed for %s", channel.id)
 
         before = self.state.get_downloaded_count(channel.id)
-        results = self.downloader.download(channel, max_downloads=max_downloads)
+        if retry:
+            results = self.downloader.retry(channel, max_downloads=max_downloads)
+        else:
+            results = self.downloader.download(channel, max_downloads=max_downloads)
         for result in results:
             if result.error:
                 logger.warning("error downloading %s: %s", result.video.video_id, result.error)
@@ -63,21 +71,16 @@ class Scheduler:
         # Return how many videos were actually downloaded.
         return self.state.get_downloaded_count(channel.id) - before
 
-    def _pending_count(self, channel: Channel) -> int:
-        """Return how many videos are still pending for a channel."""
-        return self.state.get_pending_count(channel.id)
+    def _fresh_count(self, channel: Channel) -> int:
+        """Return how many fresh (never-attempted) videos are still pending."""
+        return self.state.get_fresh_pending_count(channel.id)
+
+    def _retry_count(self, channel: Channel) -> int:
+        """Return how many cooldown-retry videos are still pending."""
+        return self.state.get_retry_pending_count(channel.id)
 
     def _is_stalled(self, channel: Channel) -> bool:
         return self._stalled_channel_id is not None and self._stalled_channel_id == channel.id
-
-    def _focus_channel(self, channels: List[Channel], now: datetime, force: bool) -> Channel | None:
-        if not self._focus_channel_id:
-            return None
-        for channel in channels:
-            if channel.id == self._focus_channel_id and not self._is_stalled(channel) and self._pending_count(channel) > 0:
-                if force or self.is_due(channel, now):
-                    return channel
-        return None
 
     def _sort_key_last_checked(self, channel: Channel) -> tuple:
         state = self.state.get_channel_state(channel.id)
@@ -99,15 +102,27 @@ class Scheduler:
         return min(uninitialized, key=self._sort_key_last_checked)
 
     def _pick_next_focus(self, channels: List[Channel], now: datetime, force: bool) -> Channel | None:
+        """Pick the due channel with the oldest last_checked_at that has fresh pending videos."""
         candidates = [
             c for c in channels
             if not self._is_stalled(c)
             and (force or self.is_due(c, now))
-            and self._pending_count(c) > 0
+            and self._fresh_count(c) > 0
         ]
         if not candidates:
             return None
-        return max(candidates, key=self._pending_count)
+        return min(candidates, key=self._sort_key_last_checked)
+
+    def _pick_next_retry(self, channels: List[Channel], now: datetime, force: bool) -> Channel | None:
+        """Pick the due channel with the oldest last_checked_at that has retry-pending videos."""
+        candidates = [
+            c for c in channels
+            if (force or self.is_due(c, now))
+            and self._retry_count(c) > 0
+        ]
+        if not candidates:
+            return None
+        return min(candidates, key=self._sort_key_last_checked)
 
     def run(
         self,
@@ -121,12 +136,20 @@ class Scheduler:
         if channel_ids:
             channels = [c for c in channels if c.id in channel_ids]
 
-        focus = self._focus_channel(channels, now, force)
+        focus: Channel | None = None
+        retry = False
+
+        # Priority 1: channels that have never been listed (new profiles).
+        focus = self._pick_uninitialized(channels, now, force)
         if focus is None:
+            # Priority 2: rotate through due channels with fresh pending videos.
             focus = self._pick_next_focus(channels, now, force)
         if focus is None:
-            focus = self._pick_uninitialized(channels, now, force)
+            # Priority 3: when no fresh left, retry failed videos whose cooldown has passed.
+            focus = self._pick_next_retry(channels, now, force)
+            retry = True
         if focus is None:
+            # Priority 4: any other due channel to keep things moving.
             focus = next(
                 (c for c in channels if not self._is_stalled(c) and (force or self.is_due(c, now))),
                 None,
@@ -142,19 +165,14 @@ class Scheduler:
             logger.info("no channels due for listing")
             return
 
-        self._focus_channel_id = focus.id
-
         if force or self.is_due(focus, now):
-            downloaded = self.run_channel(focus, now, max_downloads=max_downloads)
-            if self._pending_count(focus) == 0:
-                self._focus_channel_id = None
-            elif downloaded == 0:
-                self._focus_channel_id = None
+            downloaded = self.run_channel(focus, now, max_downloads=max_downloads, retry=retry)
+            if self._fresh_count(focus) == 0 and self._retry_count(focus) == 0:
+                self._stalled_channel_id = None
+            elif not retry and downloaded == 0:
                 self._stalled_channel_id = focus.id
-                logger.info("channel %s had pending videos but produced no downloads; treating as stalled", focus.id)
-            else:
-                # Successful progress; clear any stale stall marker for this channel.
-                if self._stalled_channel_id == focus.id:
-                    self._stalled_channel_id = None
+                logger.info("channel %s had fresh pending videos but produced no downloads; treating as stalled", focus.id)
+            elif self._stalled_channel_id == focus.id:
+                self._stalled_channel_id = None
         else:
             logger.info("focus channel %s checked recently; will retry later", focus.id)
