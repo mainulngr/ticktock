@@ -81,13 +81,6 @@ sec_uid = "MS4wLjABAAAAdXIY3OxAoDxN2BkM-q-NuCl8V0DNRjQ9Ej6NQr6uI4UTv0hhJrZxywN4_
 output_dir = "learn_english_with_jamie"
 
 [[channel]]
-id = "bark_laugh"
-username = "bark_laugh"
-name = "Bark And Laugh"
-sec_uid = "MS4wLjABAAAAuTua86PlX_HXyqSECWns151aKVZ-zl2rMaVyDKFPrqfcBIG2MMq_BrItgUnkHCRO"
-output_dir = "bark_laugh"
-
-[[channel]]
 id = "layrandlayr"
 username = "layrandlayr"
 name = "LAYR & LAYR"

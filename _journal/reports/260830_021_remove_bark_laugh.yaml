@@ -1,0 +1,13 @@
+intent: "Permanently discard the bark_laugh profile and all associated data."
+actions_taken:
+  - Stopped the downloader before deletion.
+  - Removed the channel from `settings.toml`.
+  - Deleted 1 channel record and 373 SQLite video records.
+  - Removed 295 matching yt-dlp archive entries and the listing cache.
+  - Permanently deleted 467 MB and 591 files from the media library.
+  - Refreshed Emby and verified no indexed items remain for the profile.
+  - Restarted and verified the downloader.
+files_modified:
+  - settings.toml
+  - _journal/reports/260830_021_remove_bark_laugh.yaml
+notes: "Fifteen configured profiles remain. Scheduler PID 383404 is running."
