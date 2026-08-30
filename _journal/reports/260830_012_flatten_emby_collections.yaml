@@ -1,0 +1,10 @@
+intent: "Remove the redundant channel-folder layer from Emby collections."
+actions_taken:
+  - Added each channel folder's indexed videos directly to its matching Emby collection.
+  - Removed the channel folder item from each collection after adding its videos.
+  - Verified 21 collections contain 5,189 direct video items and no folder items.
+  - Verified the ticktock scheduler remained running.
+files_modified:
+  - .windsurf/rules/workspace.md
+  - _journal/reports/260830_012_flatten_emby_collections.yaml
+notes: "Emby collections now open directly to videos. Because collection membership is explicit, future downloads require a synchronization step to join their channel collection."
