@@ -1,0 +1,19 @@
+intent: "Fix scheduler starvation for new profiles, stale-cache stalls, and a status SQL bug."
+actions_taken:
+  - Diagnosed why miras.mini.english and nirguzinski were not checked: the sticky scheduler was looping on englishfuns because a stale 666-video cache hid 11 pending DB videos.
+  - Fixed ticktock/status.py SQL to add v.video_id IS NOT NULL guards, so never-checked channels no longer show a fake pending=1.
+  - Refactored ticktock/scheduler.py to:
+    - pick the due channel with the most pending videos first,
+    - only initialize never-listed channels when no pending backlog is due,
+    - mark a focus as stalled when it has pending but downloads nothing and skip it until the cooldown passes.
+  - Updated ticktock/downloader.py to merge DB pending videos with cached/fresh listings, so stale caches no longer block older pending videos.
+  - Resolved nirguzinski and started its backlog; miras.mini.english cannot be resolved by username alone.
+  - Restarted the background scheduler and verified it immediately switched to downloading nirguzinski.
+files_modified:
+  - ticktock/scheduler.py
+  - ticktock/downloader.py
+  - ticktock/status.py
+  - settings.toml
+  - _journal/reports/260830_003_new_profile_fixes.yaml
+notes: |
+  miras.mini.english fails to list because yt-dlp cannot extract TikTok's secondary user ID from the username page. It needs a sample video URL from that account (or the channel_id/sec_uid) so the scheduler can use tiktokuser:<id> as input. The scheduler now marks it as stalled and continues with nirguzinski instead of looping on it forever.
