@@ -1,0 +1,11 @@
+intent: "Keep yt-dlp batch downloads from aborting on individual bad videos for nirguzinski."
+actions_taken:
+  - Confirmed 33 nirguzinski failures in status were per-video extractor errors, not a scheduler loop.
+  - Added --ignore-errors to the yt-dlp public-video download command so one broken video does not stop the rest of the 20-video batch.
+  - Restarted the scheduler and verified the next batch continues past failed extractions and keeps downloading the remaining URLs.
+  - Updated workspace.md to document the new batch behavior.
+files_modified:
+  - ticktock/yt_dlp.py
+  - .windsurf/rules/workspace.md
+  - _journal/reports/260830_004_yt_dlp_ignore_errors.yaml
+notes: "TikTok/yt-dlp cannot extract some old nirguzinski videos; these are now skipped within the batch instead of blocking the whole set. miras.mini.english still requires a sample video URL or sec_uid to resolve."

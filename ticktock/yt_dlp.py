@@ -191,6 +191,7 @@ class YtDlp:
             "-o",
             self.OUTPUT_TEMPLATE,
             "--no-playlist",
+            "--ignore-errors",
         ]
         if max_downloads:
             cmd.extend(["--max-downloads", str(max_downloads)])
