@@ -107,3 +107,10 @@ username = "miras.mini.englis"
 name = "Mira's Mini English"
 sec_uid = "MS4wLjABAAAAUNXkBmjEYgNrgcEOig3HSGn5WnN2JdkzFpg9msYS_KOsxMyClzGAEr6bynbg6eHu"
 output_dir = "miras_mini_englis"
+
+[[channel]]
+id = "dailyenglishkids5"
+username = "dailyenglishkids5"
+name = ""
+sec_uid = ""
+output_dir = "dailyenglishkids5"

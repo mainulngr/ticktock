@@ -61,3 +61,4 @@ TikTok profile download scheduler. Downloads videos on a schedule with chronolog
 - The downloader merges fresh DB pending videos with fresh/cached listings, so older pending videos that are missing from a stale list cache are still attempted.
 - Emby exposes `Tocks` as a native home-videos library with real-time monitoring. Channel directories are browsed directly as folders; there are no custom collections or scheduler/API integration.
 - After each successful download, `Thumbnailer` extracts a frame at 1 second to an atomic matching `.jpg` sidecar. Emby uses this `{video-name}.jpg` file as the video's primary image, and the first available thumbnail is copied atomically to `folder.jpg` for the channel card.
+- A systemd user service at `~/.config/systemd/user/ticktock.service` runs `ticktock watch --interval 120` and is enabled to start on boot; user-linger is enabled so it survives logout/reboot.

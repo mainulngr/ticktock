@@ -1,0 +1,15 @@
+intent: "Add dailyenglishkids5 to the channel list and make the scheduler survive reboots via systemd user service."
+actions_taken:
+  - Appended the dailyenglishkids5 channel block to settings.toml
+  - Attempted to resolve dailyenglishkids5 metadata with a targeted yt-dlp resolve
+  - Stopped the running manual ticktock watch process
+  - Created ~/.config/systemd/user/ticktock.service for autostart
+  - Reloaded user systemd daemon, enabled, and started the ticktock service
+  - Enabled systemd user lingering for akm so the service starts on boot
+  - Updated .windsurf/rules/workspace.md with autostart notes
+files_modified:
+  - settings.toml
+  - .windsurf/rules/workspace.md
+  - /home/akm/.config/systemd/user/ticktock.service
+  - _journal/reports/260831_001_add_profile_and_service.yaml
+notes: "dailyenglishkids5 resolution returned HTTP 429 from TikTok (too many requests) during this session; the channel is present in settings.toml and the scheduler will try to resolve/listed it on the next cycles. The systemd service is active."
