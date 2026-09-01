@@ -114,3 +114,10 @@ username = "dailyenglishkids5"
 name = "Ali Hamza"
 sec_uid = "MS4wLjABAAAA8ShW7MV5sugQ_5WIJRiezdsynNiP3WcuWuAEPQzDDah2vEK1LzUoIEa8YqRVRP7n"
 output_dir = "dailyenglishkids5"
+
+[[channel]]
+id = "storyseed_english"
+username = "storyseed.english"
+name = "Gieo Mầm Anh Ngữ 🌱"
+sec_uid = "MS4wLjABAAAAaQKft0hBqYiwYDSLD4R3AWt6xQE0UTKB3d0sUsDJJQKYPgSOL2q4T16Mgu_KS2UF"
+output_dir = "storyseed_english"
