@@ -121,3 +121,10 @@ username = "storyseed.english"
 name = "Gieo Mầm Anh Ngữ 🌱"
 sec_uid = "MS4wLjABAAAAaQKft0hBqYiwYDSLD4R3AWt6xQE0UTKB3d0sUsDJJQKYPgSOL2q4T16Mgu_KS2UF"
 output_dir = "storyseed_english"
+
+[[channel]]
+id = "enlightenmeenglish"
+username = "enlightenmeenglish"
+name = "LittleStarsEnglish"
+sec_uid = "MS4wLjABAAAAvJzt9j6t7fdZNazaR620ZkihjWes5Ml3bIr4H2vTwvxZLwRH4PGjfo3Z6V32JoY_"
+output_dir = "enlightenmeenglish"
