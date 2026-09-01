@@ -77,7 +77,18 @@ def _run(args: argparse.Namespace, config: AppConfig) -> int:
 def _watch(args: argparse.Namespace, config: AppConfig) -> int:
     scheduler = _build_scheduler(config)
     channels = load_channels(args.config)
+    settings_path = Path(args.config)
+    last_mtime = settings_path.stat().st_mtime
     while True:
+        try:
+            current_mtime = settings_path.stat().st_mtime
+            if current_mtime != last_mtime:
+                channels = load_channels(args.config)
+                last_mtime = current_mtime
+                logging.info("reloaded channels from %s", args.config)
+        except Exception:
+            logging.exception("failed to reload channels from %s; using existing list", args.config)
+
         if config.refresh_cookies and config.cookies_from_browser:
             try:
                 output = config.cookies_file or Path("cookies.txt")

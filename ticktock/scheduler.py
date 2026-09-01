@@ -150,10 +150,12 @@ class Scheduler:
             retry = True
         if focus is None:
             # Priority 4: any other due channel to keep things moving.
-            focus = next(
-                (c for c in channels if not self._is_stalled(c) and (force or self.is_due(c, now))),
-                None,
-            )
+            candidates = [
+                c for c in channels
+                if not self._is_stalled(c) and (force or self.is_due(c, now))
+            ]
+            if candidates:
+                focus = min(candidates, key=self._sort_key_last_checked)
         if focus is None and self._stalled_channel_id:
             # The stalled channel may be the only option left; give it another try.
             stalled = next((c for c in channels if c.id == self._stalled_channel_id), None)

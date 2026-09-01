@@ -1,0 +1,14 @@
+intent: "Fix new channels not being checked by the scheduler"
+actions_taken:
+  - Confirmed the systemd service was started at 07:42 before storyseed_english and enlightenmeenglish were added to settings.toml
+  - Identified that `watch` mode loaded the channel list once and never reloaded it, so new profiles were invisible to the long-running scheduler
+  - Updated `_watch` in `ticktock/cli.py` to check `settings.toml` mtime each cycle and reload the channel list when the file changes
+  - Fixed the scheduler's fallback in `ticktock/scheduler.py` to pick the least-recently-checked due channel instead of the first channel in the list, preventing the scheduler from getting stuck on dhdud3516 when no fresh or retry work remained
+  - Stopped the systemd service, trimmed `data/scheduler.log`, and restarted the service with the new code
+  - Verified the service immediately picked up `storyseed_english` and began listing and downloading
+files_modified:
+  - ticktock/cli.py
+  - ticktock/scheduler.py
+  - .windsurf/rules/workspace.md
+  - _journal/reports/260901_003_new_profiles_reload.yaml
+notes: "The first run for storyseed_english is backfilling 138 pending videos. enlightenmeenglish already has 91 videos listed from the manual test run and will be processed on its next due cycle."
