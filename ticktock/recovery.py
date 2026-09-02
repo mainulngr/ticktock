@@ -30,9 +30,9 @@ class Recovery:
     )
 
     SLEEP_ARGS = [
-        "--sleep-requests", "2",
-        "--sleep-interval", "5",
-        "--max-sleep-interval", "5",
+        "--sleep-requests", "1",
+        "--sleep-interval", "2",
+        "--max-sleep-interval", "2",
     ]
 
     def __init__(
