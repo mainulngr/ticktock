@@ -1,0 +1,11 @@
+intent: "Re-run recovery on the remaining 40 failures the user saw as not being retried."
+actions_taken:
+  - Stopped the watch service to avoid conflicts.
+  - Ran just recover a second time; 12 more videos were recovered, 28 remain failed.
+  - Restarted the watch service so the scheduler continues graceful retries.
+files_modified:
+  - _journal/reports/260902_003_second_recovery_pass.yaml
+notes: >
+  After second pass: 4263/4291 done (99.3%), 28 still failed.
+  Remaining failures: babyenglishdaily_mia (18), enlightenmeenglish (6), tinyartmagic_muhammadtariq3186 (2), storyseed_english (1), miras_mini_englis (1).
+  These are currently in the normal 6-hour retry cooldown (retries=1, failed=0). The watch service will re-attempt them automatically. If they are still failing after several automatic cycles, they are likely permanently unavailable.
