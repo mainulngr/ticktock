@@ -1,6 +1,7 @@
 """Fallback strategies for videos that fail the standard download."""
 
 import logging
+import os
 import re
 import subprocess
 import tempfile
@@ -108,7 +109,7 @@ class Recovery:
         extra_base_args: List[str],
     ) -> Set[str]:
         output_dir = self._output_dir(channel)
-        archive_path = self._archive_path(channel)
+        archive_path = self._temp_archive()
         urls = [v.url for v in videos if v.url]
         if not urls:
             return set()
@@ -121,11 +122,13 @@ class Recovery:
             )
         except YtDlpError as e:
             logger.warning("recovery batch failed: %s", e)
+        finally:
+            archive_path.unlink(missing_ok=True)
         return self._collect_downloaded(channel, videos)
 
     def _try_embed(self, channel: Channel, videos: List[Video]) -> Set[str]:
         output_dir = self._output_dir(channel)
-        archive_path = self._archive_path(channel)
+        archive_path = self._temp_archive()
         urls = [f"https://www.tiktok.com/embed/v2/{v.video_id}" for v in videos]
         output_template = "_embed_%(id)s.%(ext)s"
         extra = self.SLEEP_ARGS
@@ -139,6 +142,8 @@ class Recovery:
             )
         except YtDlpError as e:
             logger.warning("embed batch failed: %s", e)
+        finally:
+            archive_path.unlink(missing_ok=True)
         return self._collect_embed_files(channel, videos)
 
     def _target_path(self, output_dir: Path, video: Video) -> Path:
@@ -164,10 +169,10 @@ class Recovery:
         for video in videos:
             candidates = [
                 output_dir / f"_embed_{video.video_id}-1{suffix}"
-                for suffix in (".unknown_video", ".mp4")
+                for suffix in (".unknown_video", ".mp4", ".m4a")
             ] + [
                 output_dir / f"_embed_{video.video_id}-2{suffix}"
-                for suffix in (".unknown_video", ".mp4")
+                for suffix in (".unknown_video", ".mp4", ".m4a")
             ]
             best = next((p for p in candidates if p.exists() and self._has_video_stream(p)), None)
             if best:
@@ -177,10 +182,9 @@ class Recovery:
                 best.replace(target)
                 self._mark_downloaded(video, target)
                 found.add(video.video_id)
-                # clean up the other temp file(s) if any
-                for p in candidates:
-                    if p.exists():
-                        p.unlink(missing_ok=True)
+            for p in candidates:
+                if p.exists():
+                    p.unlink(missing_ok=True)
         return found
 
     def _has_video_stream(self, path: Path) -> bool:
