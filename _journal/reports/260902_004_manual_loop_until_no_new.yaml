@@ -1,0 +1,12 @@
+intent: "Repeatedly run just recover in a loop until no new videos can be recovered."
+actions_taken:
+  - Stopped the watch service.
+  - Created and ran a two-pass recovery loop (pass 1 recovered 3, pass 2 recovered 0).
+  - Removed the temporary loop script and pass logs after completion.
+  - Restarted the watch service.
+files_modified:
+  - _journal/reports/260902_004_manual_loop_until_no_new.yaml
+notes: >
+  Final result: 4266/4291 done (99.4%), 25 still failed.
+  Remaining failures: babyenglishdaily_mia (18), enlightenmeenglish (5), storyseed_english (1), miras_mini_englis (1).
+  Pass 2 recovered 0, so the loop stopped. The watch service will keep retrying on the normal 6-hour cooldown.
