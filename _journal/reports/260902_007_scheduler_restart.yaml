@@ -1,0 +1,11 @@
+intent: "Check download status and restart the ticktock scheduler after it stopped."
+actions_taken:
+  - Ran `just status` to check progress; nanienglish was in progress with 1041 pending videos.
+  - Confirmed no active scheduler process or `data/scheduler.pid` file; last log entry was at 2026-09-02 19:56.
+  - Confirmed the systemd user service was inactive since 11:43.
+  - Ran `just restart` to trim the scheduler log and start `ticktock watch --max-downloads 20 --interval 120` in the background.
+  - Verified the scheduler is running at PID 1779824 and has begun a fresh cycle, refreshing cookies and re-listing nanienglish.
+files_modified:
+  - data/scheduler.log
+  - data/scheduler.pid
+notes: "The `YT_DLP_PROXY=socks5://127.0.0.1:55555` value in `.env` is not currently read by `ticktock.config`, and the port is closed; the scheduler is therefore not using it. The previous run showed several HTTP 403 Forbidden responses from TikTok; the scheduler will retry failed items using its cooldown/backoff logic."
