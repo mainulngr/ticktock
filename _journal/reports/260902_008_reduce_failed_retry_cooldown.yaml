@@ -1,0 +1,10 @@
+intent: "Reduce the failed-download retry cooldown from 6 hours to 1 hour and restart the scheduler."
+actions_taken:
+  - Changed `FAILED_RETRY_COOLDOWN_SECONDS` from `21600` to `3600` in `.env`.
+  - Ran `just restart` to stop, log-trim, and restart the scheduler so the new cooldown takes effect.
+  - Confirmed the scheduler is running at PID 1788756 and has begun a new download cycle for nanienglish.
+files_modified:
+  - .env
+  - data/scheduler.log
+  - data/scheduler.pid
+notes: "Shorter cooldown means failed videos are retried after ~1 hour instead of 6. This may help backfill but can also increase request volume and 403/429 rate-limit risk; monitor `data/scheduler.log` and `just status` over the next few cycles."
