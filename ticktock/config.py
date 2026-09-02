@@ -28,6 +28,7 @@ class AppConfig:
     sleep_requests: float | None
     sleep_interval: float | None
     max_sleep_interval: float | None
+    yt_dlp_proxy: str | None
     yt_dlp_path: str
     thumbnail_ffmpeg_path: str
     failed_retry_cooldown: timedelta
@@ -76,6 +77,7 @@ def load_env_config() -> AppConfig:
         sleep_requests=_float_env("YT_DLP_SLEEP_REQUESTS"),
         sleep_interval=_float_env("YT_DLP_SLEEP_INTERVAL"),
         max_sleep_interval=_float_env("YT_DLP_MAX_SLEEP_INTERVAL"),
+        yt_dlp_proxy=os.getenv("YT_DLP_PROXY") or None,
         yt_dlp_path=_executable_env("YT_DLP_PATH", "yt-dlp"),
         thumbnail_ffmpeg_path=os.getenv("THUMBNAIL_FFMPEG_PATH", "ffmpeg"),
         failed_retry_cooldown=timedelta(seconds=_int_env("FAILED_RETRY_COOLDOWN_SECONDS", 21600)),
