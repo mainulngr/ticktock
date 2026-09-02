@@ -2,6 +2,7 @@ import logging
 import shutil
 import subprocess
 from pathlib import Path
+from typing import Iterable
 
 logger = logging.getLogger(__name__)
 
@@ -52,3 +53,37 @@ class Thumbnailer:
 
         logger.info("generated thumbnail: %s", thumbnail_path)
         return True
+
+    def backfill(self, base_dir: Path) -> None:
+        """Ensure every video has a sidecar .jpg and every channel has a folder.jpg."""
+        if not base_dir.exists():
+            logger.warning("download base dir does not exist: %s", base_dir)
+            return
+
+        channel_dirs = [p for p in base_dir.iterdir() if p.is_dir()]
+        generated = 0
+        missing_folders = 0
+        for channel_dir in channel_dirs:
+            jpgs = sorted(channel_dir.glob("*.jpg"))
+            folder_jpg = channel_dir / "folder.jpg"
+            if not folder_jpg.exists() and jpgs:
+                # pick the lexicographically first (oldest) video thumbnail
+                source = jpgs[0]
+                temporary = channel_dir / "folder.tmp.jpg"
+                shutil.copyfile(source, temporary)
+                temporary.replace(folder_jpg)
+                missing_folders += 1
+                logger.info("created folder thumbnail: %s", folder_jpg)
+
+            for video_path in channel_dir.glob("*.mp4"):
+                thumb = video_path.with_suffix(".jpg")
+                if thumb.exists() and thumb.stat().st_size > 0:
+                    continue
+                if self.generate(video_path):
+                    generated += 1
+
+        logger.info(
+            "thumbnail backfill complete: %d channels got folder.jpg, %d video thumbnails generated",
+            missing_folders,
+            generated,
+        )

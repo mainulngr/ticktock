@@ -40,6 +40,7 @@ TikTok profile download scheduler. Downloads videos on a schedule with chronolog
 - `just summary` — list downloaded files
 - `just status` — per-channel completion, pending, and failed count
 - `just recover` — recover failed downloads for all channels with fallback strategies
+- `just backfill-thumbnails` — ensure every downloaded video and channel folder has a JPEG thumbnail for Emby
 - `just refresh-cookies` — export Vivaldi cookies to `cookies.txt`
 - `just clean` — remove downloads and state
 - `just clean-slate` — remove downloads and state with confirmation

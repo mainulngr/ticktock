@@ -56,6 +56,12 @@ def _refresh_cookies(args: argparse.Namespace, config: AppConfig) -> int:
     return 0
 
 
+def _backfill_thumbnails(args: argparse.Namespace, config: AppConfig) -> int:
+    ensure_paths(config)
+    Thumbnailer(config.thumbnail_ffmpeg_path).backfill(config.download_base_dir)
+    return 0
+
+
 def _status(args: argparse.Namespace, config: AppConfig) -> int:
     channels = load_channels(args.config)
     Status(config.state_db_path, channels, failed_retry_cooldown=config.failed_retry_cooldown).show()
@@ -173,6 +179,9 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     status_p = sub.add_parser("status", help="show download status for all channels")
     status_p.set_defaults(func=_status)
+
+    backfill_p = sub.add_parser("backfill-thumbnails", help="ensure all videos and channel folders have Emby thumbnails")
+    backfill_p.set_defaults(func=_backfill_thumbnails)
 
     refresh_p = sub.add_parser("refresh-cookies", help="export browser cookies to cookies.txt")
     refresh_p.add_argument("-b", "--browser", default=None, help="browser name (default: TIKTOK_COOKIES_FROM_BROWSER)")

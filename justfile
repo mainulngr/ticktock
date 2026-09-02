@@ -65,6 +65,10 @@ status:
 recover *args="":
     {{python}} -m ticktock recover {{args}}
 
+# ensure every downloaded video and channel folder has an Emby thumbnail
+backfill-thumbnails:
+    {{python}} -m ticktock backfill-thumbnails
+
 # export browser cookies to cookies.txt (run while logged into the browser)
 refresh-cookies:
     {{python}} -m ticktock refresh-cookies
