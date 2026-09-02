@@ -1,0 +1,20 @@
+intent: "Apply TikTok download workarounds to all channels and build them into the scheduler as graceful, automatic retries."
+actions_taken:
+  - Added ticktock/recovery.py with a fallback chain: browser cookies + UA, cookies.txt, TikTok embed pages.
+  - Extended ticktock/yt_dlp.py to support per-call extra_base_args and output_template.
+  - Integrated Recovery into ticktock/downloader.py so every watch/run cycle retries failures.
+  - Added ticktock recover CLI and just recover recipe.
+  - Ran just recover across all 19 channels; 256 of 296 missing videos recovered, 40 remain failed.
+  - Restarted the watch service with the new fallback-enabled code.
+files_modified:
+  - ticktock/recovery.py
+  - ticktock/yt_dlp.py
+  - ticktock/downloader.py
+  - ticktock/cli.py
+  - justfile
+  - .windsurf/rules/workspace.md
+  - _journal/reports/260902_002_all_channels_recovery.yaml
+notes: >
+  Final status: 4251/4291 done (99.1%).
+  Remaining failed: babyenglishdaily_mia (18), tinyartmagic_muhammadtariq3186 (10), enlightenmeenglish (9), learn_english_with_jamie (1), storyseed_english (1), miras_mini_englis (1).
+  These are permanently unavailable or audio-only; the scheduler will continue graceful retries on its normal cooldown.
