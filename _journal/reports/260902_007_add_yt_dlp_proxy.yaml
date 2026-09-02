@@ -1,0 +1,14 @@
+intent: "Allow yt-dlp downloads to go through a proxy without changing system-wide network settings."
+actions_taken:
+  - Added YT_DLP_PROXY to AppConfig and .env.example.
+  - Pass --proxy to yt-dlp in _base_args so only download requests use the proxy.
+  - Updated workspace.md to document the new option.
+  - Verified the code compiles.
+files_modified:
+  - ticktock/config.py
+  - ticktock/yt_dlp.py
+  - .env.example
+  - .windsurf/rules/workspace.md
+  - _journal/reports/260902_007_add_yt_dlp_proxy.yaml
+notes: >
+  The user can enable Windscribe's Proxy Gateway and set YT_DLP_PROXY=socks5://127.0.0.1:<port> in .env. Only yt-dlp download requests are proxied; listing and other traffic stays on the host connection. The scheduler remains stopped until the user configures Windscribe and restarts.
