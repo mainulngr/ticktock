@@ -19,20 +19,14 @@ class Thumbnailer:
         shutil.copyfile(thumbnail_path, temporary_path)
         temporary_path.replace(folder_thumbnail)
 
-    def generate(self, video_path: Path) -> bool:
-        thumbnail_path = video_path.with_suffix(".jpg")
-        if thumbnail_path.exists():
-            self._ensure_folder_thumbnail(thumbnail_path)
-            return False
-
-        temporary_path = video_path.with_suffix(".tmp.jpg")
+    def _extract_frame(self, video_path: Path, temporary_path: Path, seek: str) -> bool:
         command = [
             self.ffmpeg_path,
             "-hide_banner",
             "-loglevel",
             "error",
             "-ss",
-            "1",
+            seek,
             "-i",
             str(video_path),
             "-frames:v",
@@ -44,6 +38,23 @@ class Thumbnailer:
         ]
         try:
             subprocess.run(command, capture_output=True, text=True, timeout=120, check=True)
+        except (OSError, subprocess.SubprocessError):
+            return False
+        return temporary_path.exists() and temporary_path.stat().st_size > 0
+
+    def generate(self, video_path: Path) -> bool:
+        thumbnail_path = video_path.with_suffix(".jpg")
+        if thumbnail_path.exists():
+            self._ensure_folder_thumbnail(thumbnail_path)
+            return False
+
+        temporary_path = video_path.with_suffix(".tmp.jpg")
+        try:
+            if not self._extract_frame(video_path, temporary_path, "1"):
+                if not self._extract_frame(video_path, temporary_path, "0"):
+                    temporary_path.unlink(missing_ok=True)
+                    logger.warning("thumbnail generation failed for %s: no frame at ss 0 or 1", video_path)
+                    return False
             temporary_path.replace(thumbnail_path)
             self._ensure_folder_thumbnail(thumbnail_path)
         except (OSError, subprocess.SubprocessError) as error:
