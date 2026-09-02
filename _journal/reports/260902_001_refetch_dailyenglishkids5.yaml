@@ -1,0 +1,17 @@
+intent: "Refetch failed videos for dailyenglishkids5 using multiple yt-dlp workarounds"
+actions_taken:
+  - Checked status: dailyenglishkids5 had 18 failed; total 335 failed across channels
+  - Stopped the active watch scheduler and backed up data/state.db
+  - Reset failed markers for dailyenglishkids5 and ran a force download (6 succeeded, 16 failed)
+  - Re-attempted with cookies in download args (2 more succeeded)
+  - Used TikTok embed page (https://www.tiktok.com/embed/v2/{id}) for 12 remaining failures
+  - Used --cookies-from-browser vivaldi for the last two, with --user-agent for one
+  - Verified status: dailyenglishkids5 is 133/133 (done)
+  - Restarted the watch scheduler with `just restart`
+  - Cleaned up temporary test directories
+files_modified:
+  - data/state.db
+  - /mega/media/tocks/dailyenglishkids5/*.mp4
+  - /mega/media/tocks/dailyenglishkids5/*.jpg
+  - _journal/reports/260902_001_refetch_dailyenglishkids5.yaml
+notes: "The TikTok-only cookies.txt is sometimes not enough; full browser cookies and/or a custom User-Agent may be required. 317 failures remain across other channels; applying the same workarounds to all of them would be a larger job."
