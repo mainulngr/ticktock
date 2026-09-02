@@ -41,8 +41,8 @@ class YtDlp:
         args.extend(["--sleep-requests", "1"])
         return args
 
-    def _base_args(self) -> List[str]:
-        """Args for public video downloads: omit cookies to avoid TikTok challenge failures."""
+    def _base_args(self, extra: Optional[List[str]] = None) -> List[str]:
+        """Args for public video downloads; extra args may override/add options."""
         args = [str(self.config.yt_dlp_path), "--no-warnings", "--restrict-filenames", "--impersonate", "chrome"]
         if self.config.sleep_requests is not None:
             args.extend(["--sleep-requests", str(self.config.sleep_requests)])
@@ -50,6 +50,8 @@ class YtDlp:
             args.extend(["--sleep-interval", str(self.config.sleep_interval)])
         if self.config.max_sleep_interval is not None:
             args.extend(["--max-sleep-interval", str(self.config.max_sleep_interval)])
+        if extra:
+            args.extend(extra)
         return args
 
     def _run_json_lines(self, args: List[str]) -> List[dict]:
@@ -142,9 +144,15 @@ class YtDlp:
         entry = entries[0]
         return entry.get("timestamp") or 0
 
-    def _run_stream(self, args: List[str], cwd: Path | None = None, timeout: int | None = None) -> int:
+    def _run_stream(
+        self,
+        args: List[str],
+        cwd: Path | None = None,
+        timeout: int | None = None,
+        extra_base_args: Optional[List[str]] = None,
+    ) -> int:
         """Run yt-dlp and stream its output line-by-line to the log."""
-        cmd = self._base_args() + args
+        cmd = self._base_args(extra=extra_base_args) + args
         logger.debug("running: %s", " ".join(cmd))
         try:
             proc = subprocess.Popen(
@@ -182,14 +190,16 @@ class YtDlp:
         urls: Iterable[str],
         output_dir: Path,
         archive_path: Path,
-        max_downloads: int | None = None,
+        max_downloads: Optional[int] = None,
+        output_template: Optional[str] = None,
+        extra_base_args: Optional[List[str]] = None,
     ) -> None:
         ensure_dir(output_dir)
         cmd = [
             "--download-archive",
             str(archive_path),
             "-o",
-            self.OUTPUT_TEMPLATE,
+            output_template or self.OUTPUT_TEMPLATE,
             "--no-playlist",
             "--ignore-errors",
         ]
@@ -197,7 +207,12 @@ class YtDlp:
             cmd.extend(["--max-downloads", str(max_downloads)])
         cmd.extend(urls)
         logger.debug("downloading: %s", " ".join(cmd))
-        return_code = self._run_stream(cmd, cwd=output_dir, timeout=1200)
+        return_code = self._run_stream(
+            cmd,
+            cwd=output_dir,
+            timeout=1200,
+            extra_base_args=extra_base_args,
+        )
         if return_code not in (0, 101):
             raise YtDlpError(f"yt-dlp download failed (code {return_code})")
 
@@ -207,7 +222,9 @@ class YtDlp:
         output_dir: Path,
         archive_path: Path,
         dateafter: Optional[str] = None,
-        max_downloads: int | None = None,
+        max_downloads: Optional[int] = None,
+        output_template: Optional[str] = None,
+        extra_base_args: Optional[List[str]] = None,
     ) -> None:
         """Download a whole channel, letting yt-dlp's archive skip known ids."""
         ensure_dir(output_dir)
@@ -215,7 +232,7 @@ class YtDlp:
             "--download-archive",
             str(archive_path),
             "-o",
-            self.OUTPUT_TEMPLATE,
+            output_template or self.OUTPUT_TEMPLATE,
             "--break-on-existing",
             "--break-per-input",
         ]
@@ -225,7 +242,12 @@ class YtDlp:
             cmd.extend(["--max-downloads", str(max_downloads)])
         cmd.append(url)
         logger.info("downloading channel: %s (dateafter=%s)", url, dateafter or "all")
-        return_code = self._run_stream(cmd, cwd=output_dir, timeout=1800)
+        return_code = self._run_stream(
+            cmd,
+            cwd=output_dir,
+            timeout=1800,
+            extra_base_args=extra_base_args,
+        )
 
         # 101 indicates the run was intentionally cancelled (e.g. break-on-existing or max-downloads).
         if return_code not in (0, 101):

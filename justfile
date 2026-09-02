@@ -61,6 +61,10 @@ summary:
 status:
     {{python}} -m ticktock status
 
+# recover failed downloads across all channels using fallback strategies
+recover *args="":
+    {{python}} -m ticktock recover {{args}}
+
 # export browser cookies to cookies.txt (run while logged into the browser)
 refresh-cookies:
     {{python}} -m ticktock refresh-cookies

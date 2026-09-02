@@ -74,6 +74,37 @@ def _run(args: argparse.Namespace, config: AppConfig) -> int:
     return 0
 
 
+def _recover(args: argparse.Namespace, config: AppConfig) -> int:
+    scheduler = _build_scheduler(config)
+    channels = load_channels(args.config)
+    total_recovered = 0
+    total_still_failed = 0
+    for channel in channels:
+        if args.channel and channel.id not in args.channel:
+            continue
+        all_videos = scheduler.state.get_videos_for_channel(channel.id)
+        missing = [v for v in all_videos if not v.file_path]
+        if not missing:
+            continue
+        with scheduler.state._connection() as conn:
+            conn.execute(
+                "UPDATE videos SET failed=0, retries=0, failed_at=NULL, error=NULL "
+                "WHERE channel_id=? AND (file_path IS NULL OR file_path='')",
+                (channel.id,),
+            )
+        logging.info("recovering %d missing video(s) for %s", len(missing), channel.id)
+        recovered = scheduler.downloader.recovery.recover_videos(channel, missing)
+        still = [v for v in missing if v.video_id not in recovered]
+        for v in still:
+            scheduler.state.record_failure(v.video_id, "all recovery strategies failed")
+        scheduler.state.update_latest_from_downloaded(channel.id)
+        total_recovered += len(recovered)
+        total_still_failed += len(still)
+        logging.info("%s: %d/%d recovered", channel.id, len(recovered), len(missing))
+    logging.info("total: %d recovered, %d still failed", total_recovered, total_still_failed)
+    return 0
+
+
 def _watch(args: argparse.Namespace, config: AppConfig) -> int:
     scheduler = _build_scheduler(config)
     channels = load_channels(args.config)
@@ -147,6 +178,10 @@ def main(argv: Sequence[str] | None = None) -> int:
     refresh_p.add_argument("-b", "--browser", default=None, help="browser name (default: TIKTOK_COOKIES_FROM_BROWSER)")
     refresh_p.add_argument("-o", "--output", default="cookies.txt", help="output cookie file")
     refresh_p.set_defaults(func=_refresh_cookies)
+
+    recover_p = sub.add_parser("recover", help="recover failed downloads with fallback strategies")
+    _add_common_args(recover_p)
+    recover_p.set_defaults(func=_recover)
 
     args = parser.parse_args(argv)
     config = load_env_config()

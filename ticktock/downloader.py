@@ -9,6 +9,7 @@ from typing import List
 from .config import AppConfig
 from .list_cache import ListCache
 from .models import Channel, DownloadResult, Video
+from .recovery import Recovery
 from .state import State
 from .thumbnails import Thumbnailer
 from .utils import ensure_dir
@@ -27,6 +28,7 @@ class Downloader:
         self.state = state
         self.ytdlp = ytdlp
         self.thumbnailer = thumbnailer
+        self.recovery = Recovery(config, state, ytdlp, thumbnailer)
         self.list_cache = (
             ListCache(config.state_db_path.parent, config.list_cache_ttl)
             if config.list_cache_ttl.total_seconds() > 0
@@ -137,6 +139,12 @@ class Downloader:
             error = "no video url"
 
         self._sync_state_from_disk(channel)
+
+        # Try a chain of fallback strategies for anything the standard batch missed.
+        failed_videos = [v for v in pending if not self.state.is_downloaded(v.video_id)]
+        if failed_videos:
+            self.recovery.recover_videos(channel, failed_videos)
+            self._sync_state_from_disk(channel)
 
         results: List[DownloadResult] = []
         for video in pending:

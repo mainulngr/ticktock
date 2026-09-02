@@ -39,6 +39,7 @@ TikTok profile download scheduler. Downloads videos on a schedule with chronolog
 - `just verify` — test one download per channel
 - `just summary` — list downloaded files
 - `just status` — per-channel completion, pending, and failed count
+- `just recover` — recover failed downloads for all channels with fallback strategies
 - `just refresh-cookies` — export Vivaldi cookies to `cookies.txt`
 - `just clean` — remove downloads and state
 - `just clean-slate` — remove downloads and state with confirmation
@@ -52,6 +53,8 @@ TikTok profile download scheduler. Downloads videos on a schedule with chronolog
 - `.env` supports `DOWNLOAD_BASE_DIR`, `TIKTOK_COOKIES_FILE` / `TIKTOK_COOKIES_FROM_BROWSER`, optional `TIKTOK_REFRESH_COOKIES=true` (re-export from browser before each cycle), `THUMBNAIL_FFMPEG_PATH` (local JPEG thumbnail extraction, default `ffmpeg`), `MIN_INTERVAL_SECONDS` (per-channel due interval), `LIST_CACHE_TTL` (cache channel listings), `LIST_MAX_ITEMS` (cap channel listings, default no limit), `SLEEP_BETWEEN_CHANNELS` (pause between channels), yt-dlp sleep options, `FAILED_RETRY_COOLDOWN_SECONDS` (default 21600 = 6h), and `MAX_FAILED_RETRIES` (default 3) for cooldown-based failed download retry.
 - `just refresh-cookies` only keeps TikTok-domain cookies, not the whole browser session. Cookies are used for profile listing but omitted from public video downloads because they can invalidate TikTok challenge responses.
 - Actual download batches use the project virtualenv yt-dlp with Chrome impersonation and pass `--ignore-errors`, so one malformed/unavailable video does not abort the rest of the batch; failed videos are retried later by the scheduler instead of immediately.
+- The downloader now runs a `Recovery` fallback after a failed batch: browser cookies, the TikTok `cookies.txt` file, and the embed page URL (`/embed/v2/{video_id}`) are tried before giving up.
+- `just recover` resets and re-attempts all missing downloads across every channel using the same fallback chain.
 - Channel listings are cached under `data/list_cache/` so `max-downloads` runs do not re-list the whole channel every time.
 - Download order is oldest-first: the scheduler backfills the oldest fresh pending video for the due channel with the oldest `last_checked_at` each run, then moves forward in time.
 - The `videos` table tracks `failed`, `retries`, and `failed_at` to retry transient failures with a cooldown, and mark permanently unavailable videos as failed after `MAX_FAILED_RETRIES`.
