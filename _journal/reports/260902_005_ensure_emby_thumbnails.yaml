@@ -1,0 +1,13 @@
+intent: "Ensure every downloaded video has an Emby sidecar .jpg thumbnail and every channel has a folder.jpg."
+actions_taken:
+  - Added Thumbnailer.backfill() and the `just backfill-thumbnails` / `ticktock backfill-thumbnails` command.
+  - Stopped the watch service, ran backfill, and restarted it.
+  - Verified before and after: 0 channel folder.jpg missing, 0 video .jpg missing, 0 empty jpg files.
+files_modified:
+  - ticktock/thumbnails.py
+  - ticktock/cli.py
+  - justfile
+  - .windsurf/rules/workspace.md
+  - _journal/reports/260902_005_ensure_emby_thumbnails.yaml
+notes: >
+  Backfill completed with 0 missing. All 18 channels have folder.jpg and all 4266 downloaded .mp4 files have matching .jpg sidecars. The watch service will continue generating thumbnails for any new downloads.
