@@ -1,0 +1,14 @@
+intent: "Add the nanienglish channel to the scheduler and resume continuous downloading."
+actions_taken:
+  - Added nanienglish to settings.toml.
+  - Ran just resolve to fill sec_uid and display name.
+  - Ran a forced one-shot download for nanienglish to verify the channel works (49 videos downloaded, 1 failed).
+  - Fixed Thumbnailer to fall back to ss=0 when ss=1 produces no frame, so image/photo posts stored as mjpeg-only .mp4 files get an Emby .jpg sidecar.
+  - Ran just backfill-thumbnails to generate sidecars and folder.jpg for the initial nanienglish downloads.
+  - Restarted the watch service; it is now backfilling nanienglish 20 videos per cycle.
+files_modified:
+  - settings.toml
+  - ticktock/thumbnails.py
+  - _journal/reports/260902_006_add_nanienglish.yaml
+notes: >
+  nanienglish has 1191 listed videos; 49 done and 1141 pending. The watch service is active and will continue downloading on its 120s cycle. Some posts are image-only; the thumbnail fix handles those.
