@@ -50,8 +50,6 @@ class YtDlp:
             args.extend(["--sleep-interval", str(self.config.sleep_interval)])
         if self.config.max_sleep_interval is not None:
             args.extend(["--max-sleep-interval", str(self.config.max_sleep_interval)])
-        if self.config.yt_dlp_proxy:
-            args.extend(["--proxy", self.config.yt_dlp_proxy])
         if extra:
             args.extend(extra)
         return args
