@@ -1,0 +1,10 @@
+intent: "Check current download status and restart all failed downloads"
+actions_taken:
+  - Ran `just status` to capture baseline: 5,483 listed, 5,420 done, 0 pending, 63 failed
+  - Ran `just recover` to re-attempt all 63 failed videos using browser cookies, cookies.txt, and `/embed/v2/{id}` fallbacks
+  - Ran `just status` again to verify the post-recovery state
+files_modified:
+  - data/state.db
+  - data/scheduler.log
+  - _journal/reports/260905_001_status_and_recover.yaml
+notes: "Recovery completed with 0 of the original 63 failed videos recovered. Final status: 5,494 listed, 5,422 done, 8 pending, 64 failed. `babyenglishdaily_mia` was re-listed during recovery, adding 11 new videos (2 done, 8 pending, 1 new failed). The 5 blocked channels remain: nanienglish (43 failed), babyenglishdaily_mia (18), storyseed_english (1), enlightenmeenglish (1), miras_mini_englis (1). Some videos only resolved to audio-only or embed streams, which were rejected as incomplete recoveries."
